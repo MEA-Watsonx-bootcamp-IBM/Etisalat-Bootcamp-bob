@@ -1,4 +1,4 @@
-# Telecom Postpaid Plan Eligibility Bootcamp
+﻿# Telecom Postpaid Plan Eligibility Bootcamp
 
 **IBM watsonx Orchestrate**
 
@@ -53,8 +53,8 @@ a manual process would normally perform.
 - [Prerequisites](#prerequisites)
 - [Accessing Your Environment](#accessing-your-environment)
 - [Documents](#documents)
-- [Part 1 — Document Agent](#part-1--build-sub-agent-1-document-agent)
-- [Part 2 — Payment Agent](#part-2--build-sub-agent-2-payment-agent)
+- [Part 1 — Payment Agent](#part-1--build-sub-agent-1-payment-agent)
+- [Part 2 — Document Agent](#part-2--build-sub-agent-2-document-agent)
 - [Part 3 — Master Agent](#part-3--build-the-master-agent)
 - [Part 4 — Full Pipeline Test](#part-4--full-pipeline-test)
 - [Part 5 — Test Scenarios](#part-5--test-scenarios)
@@ -152,7 +152,7 @@ If all checks pass, the system retrieves eligible plan tiers from the knowledge 
 Before starting, make sure you have:
 
 - **Python 3.11** installed on your machine
-- **VS Code** (or any code editor)
+- **Bob IDE**
 - **IBM Cloud invitation email** — you should have received this before the session. If not, Check with your instructor before proceeding.
 
 ---
@@ -226,22 +226,49 @@ Three sets of Emirates ID and payslip documents are provided. Each has a specifi
 | ✅ Test: PASS | EID_Pass.png, Payslip_Pass.png | [documents/Pass Test/](documents/Pass%20Test/) |
 | ❌ Test: FAIL | EID_Fail.png, Payslip_Fail.png | [documents/Fail Test/](documents/Fail%20Test/) |
 
-> During **Part 1** upload the **training documents** into the Document Extractor nodes.
+> During **Part 2** upload the **training documents** into the Document Extractor nodes.
 > Swap to test documents during [Test Scenarios](#test-scenarios).
 
 ---
 
-## Part 1 — Build Sub-Agent 1: Document Agent
+## Part 1 — Build Sub-Agent 1: Payment Agent
+
+### 1.1 Create the Agent
+
+> ⚠️ Replace `<your_last_name>` with your last name before pasting the prompt in step 6. **Example:** `payment_agent_ahmed`, `create_payment_link_ahmed`
+
+In the watsonx Orchestrate UI:
+
+1. Click the **☰ hamburger menu** → under **Active Inventory**, click **Agents**
+2. Click **Create agent**
+3. Click **Build with Bob** — your browser will show a prompt asking to open an `ibm-bob://` link → click **Open Link**
+4. **Bob IDE opens** — inside Bob IDE a pop-up appears asking to install the **watsonx Orchestrate ADK** extension → click **Install Extension and Open URI**
+5. Bob IDE then prompts for your API key for the environment — enter it and press **Enter**
+6. A new task opens in Bob IDE — paste the following prompt:
+
+```
+Create the payment agent for the postpaid eligibility lab on watsonx Orchestrate: a Python tool create_payment_link_<your_last_name>(plan_name, subscription_aed) and a native agent payment_agent_<your_last_name> that uses it (model groq/openai/gpt-oss-120b).
+
+The tool creates a Stripe test-mode Payment Link — a short buy.stripe.com link, never a checkout session — for the plan's monthly subscription in AED, and returns status, payment_url, link_id and reason without ever raising. Stripe test key to embed in the code: sk_test_51Tls7GRriMoAjNdV3T7efWnrIBRQLDuGUEcfXk4oJHQhVAVxjpMv8FDstHZ0qHonFTmqjI9bT5OJ8pwmbnfRmgEj00iPaeMGpY
+
+The agent, given a plan name and monthly subscription, calls the tool once and replies with only a markdown link whose text is "Click here to pay for <plan name>" and whose target is the payment_url exactly as returned; on failure it says the link could not be created and why. It never asks for card details or writes a URL itself.
+
+Import both, then prove it: create a link for "Smart 150" at 150 AED and confirm through the Stripe API that it is active for 15000 fils in AED. Show me the tool output and the Stripe confirmation.
+```
+
+---
+
+## Part 2 — Build Sub-Agent 2: Document Agent
 
 > **Accessing your environment:**
 > Open the watsonx Orchestrate instance URL from your welcome email, log in, and you will land on the home page.
 
 ---
 
-### 1.1 Create the Agent
+### 2.1 Create the Agent
 
 ```
-☰ Hamburger menu → Build → Create Agent → From scratch
+☰ Hamburger menu → under Active Inventory, click Agents → Create agent → From scratch
 ```
 <img width="1237" height="701" alt="image" src="https://github.com/user-attachments/assets/e6cf751f-bd77-4b52-87d2-1f031e984354" />
 <img width="1311" height="732" alt="image" src="https://github.com/user-attachments/assets/112dfb9f-9ae8-4c12-8b76-2f532fc5260a" />
@@ -254,7 +281,7 @@ Three sets of Emirates ID and payslip documents are provided. Each has a specifi
 
 ---
 
-### 1.2 Add the Instructions
+### 2.2 Add the Instructions
 
 Click the **Instructions** tab and paste:
 
@@ -324,7 +351,7 @@ After presenting the final output, return the complete raw output from the docum
 
 ---
 
-### 1.3 Verify Agent Style
+### 2.3 Verify Agent Style
 
 Scroll down on the agent page → click **Advanced settings** → confirm **Style** is set to `React Core`. If not, click the dropdown and select it.
 
@@ -332,7 +359,7 @@ Scroll down on the agent page → click **Advanced settings** → confirm **Styl
 
 ---
 
-### 1.4 Create the Agentic Workflow
+### 2.4 Create the Agentic Workflow
 
 In the top menu, click **Add tool** → Select **Agentic Workflow**.
 
@@ -354,7 +381,7 @@ Click **start building**. This opens the workflow canvas.
 
 ---
 
-### 1.5 Build the Workflow
+### 2.5 Build the Workflow
 
 #### Node 1 & 2 — Collect from User (File Upload)
 
@@ -748,72 +775,13 @@ After the workflow is created, configure the END node to expose the workflow out
 
 ---
 
-### 1.6 Save and Exit
+### 2.6 Save and Exit
 
 Click **Done** (top-right) to return to the agent page.
 
 ---
 
-### 1.7 Set Up Your IDE and ADK Environment
-
-Before importing any tools, set up VS Code and activate your Orchestrate environment. You only need to do this once — it covers both the knowledge base tool and the payment tool.
-
----
-
-#### Step 1 — Open your IDE
-
-Open **VS Code**. Create a new folder on your desktop called `etisalat-bootcamp`.
-
-```
-File → Open Folder → select etisalat-bootcamp
-```
-
----
-
-#### Step 2 — Open the terminal in VS Code
-
-```
-Terminal → New Terminal
-```
-
-A terminal panel opens at the bottom of VS Code pointing to your `etisalat-bootcamp` folder.
-
----
-
-#### Step 3 — Install the ADK and activate your environment
-
-Install the ADK:
-
-**Windows:**
-```bash
-pip install ibm-watsonx-orchestrate
-```
-
-**Mac:**
-```bash
-pip3 install ibm-watsonx-orchestrate
-```
-
-Add your environment — replace `<your-instance-url>` with the **Service instance URL** you copied in [Accessing Your Environment](#accessing-your-environment):
-
-```bash
-orchestrate env add -n EtisalatBootcamp -u <your-instance-url>
-```
-<img width="1113" height="88" alt="image" src="https://github.com/user-attachments/assets/44bf0822-4add-40ea-a699-3ebfb7a66fd6" />
-
-> `-n EtisalatBootcamp` is the name for this environment. You will use it every session.
-
-Activate the environment:
-
-```bash
-orchestrate env activate EtisalatBootcamp
-```
-When prompted, enter your **API key** and press Enter.
-<img width="1104" height="141" alt="image" src="https://github.com/user-attachments/assets/2fb5d1b8-5470-453b-924b-1e2ae9d5a9bd" />
-
----
-
-### 1.8 Import Knowledge Base Tool
+### 2.7 Import Knowledge Base Tool
 
 > 📌 This tool acts as the knowledge base for the agent — it connects directly to Milvus and retrieves the full postpaid plan catalogue deterministically, replacing a conversational knowledge base lookup.
 
@@ -823,11 +791,13 @@ This step imports `get_postpaid_plans` — a Python tool that queries the Milvus
 
 #### Step 1 — Create the tool file
 
-Go into your `etisalat-bootcamp` folder in VS Code and create a new file:
+In the current workspace in Bob IDE, create a new file **under the `tools` folder**:
 
 ```
-File → New File → name it: get_postpaid_plans.py
+tools/ → New File → name it: get_postpaid_plans.py
 ```
+
+> ⚠️ Replace `<your_last_name>` with your last name before saving. **Example:** `name="get_postpaid_plans_ahmed"`
 
 Paste this code:
 
@@ -929,8 +899,10 @@ Then save the file (`Ctrl+S` / `Cmd+S`).
 
 #### Step 2 — Create the requirements file
 
+In the same `tools` folder, create a new file:
+
 ```
-File → New File → name it: requirements_kb.txt
+tools/ → New File → name it: requirements_kb.txt
 ```
 
 Paste and save:
@@ -939,10 +911,10 @@ Paste and save:
 pymilvus==2.6.1
 ```
 
-Your folder should now look like:
+Your `tools` folder should now look like:
 
 ```
-etisalat-bootcamp/
+tools/
 ├── get_postpaid_plans.py
 └── requirements_kb.txt
 ```
@@ -954,14 +926,14 @@ etisalat-bootcamp/
 In your terminal:
 
 ```bash
-orchestrate tools import --kind python -r requirements_kb.txt -f get_postpaid_plans.py
+orchestrate tools import --kind python -r tools/requirements_kb.txt -f tools/get_postpaid_plans.py
 ```
 <img width="1118" height="94" alt="image" src="https://github.com/user-attachments/assets/4b6b9eb2-20de-4a5b-b290-aaef7c62018e" />
 
 Verify the tool was imported — go to your browser:
 
 ```
-☰ Hamburger menu → Build → All Tools → get_postpaid_plans_<your_last_name>
+☰ Hamburger menu → under Active Inventory, click Tools → get_postpaid_plans_<your_last_name>
 ```
 
 If it appears in the list, the tool is ready. ✅
@@ -971,7 +943,7 @@ If it appears in the list, the tool is ready. ✅
 #### Step 4 — Add the tool to document_agent
 
 ```
-☰ Hamburger menu → Build → All Agents → document_agent_<your_last_name>
+☰ Hamburger menu → under Active Inventory, click Agents → document_agent_<your_last_name>
 ```
 
 Click the **Tool** tab → **Add tool** → **Local instance** → select `get_postpaid_plans_<your_last_name>` → **Add**.
@@ -980,244 +952,12 @@ Click the **Tool** tab → **Add tool** → **Local instance** → select `get_p
 ---
 
 
-## Part 2 — Build Sub-Agent 2: Payment Agent
-
-### 2.1 Create the Agent
-
-```
-☰ Hamburger menu → Build → Create Agent → From scratch
-```
-
-| Field | Value |
-|---|---|
-| Name | `payment_agent_<your_last_name> (eg: payment_agent_ahmed)`|
-| Description | Handles payment collection for a postpaid plan the user has selected. Creates a Stripe test-mode checkout link for the chosen plan's monthly rental amount and shares it with the user to complete payment. |
-
----
-
-### 2.2 Verify Agent Style
-
-Scroll down on the agent page → click **Advanced settings** → confirm **Style** is set to `React Core`. If not, click the dropdown and select it.
-
-> The **Description** and **Style** must be set before adding instructions. Scroll down past the description field to find Advanced settings.
-
----
-
-### 2.3 Add the Instructions
-
-Click the **Instructions** tab and paste:
-
-```
-You handle payment collection once a user has selected a postpaid plan.
-
-When you receive a plan name and its monthly rental amount in AED:
-
-1. Call create_payment_link with the plan_name and rental_aed.
-2. If status is CREATED, respond with only the payment_url as a markdown hyperlink with clear link text — no greeting, no confirmation phrase, no introductory sentence of your own. The master agent adds its own framing before relaying your response, so your entire response should be just the link itself. The URL itself is a long opaque token — it may contain many characters after a "#" symbol that look like random text or encoded data. This is normal and expected. You must copy the entire payment_url exactly as returned by the tool, character for character, with nothing shortened, summarized, truncated, "cleaned up," or rewritten. Never drop, trim, or simplify any part of it, including everything after the "#".
-
-   Format it like this, where [the actual payment_url value returned by the tool] is replaced with the real, complete URL:
-   [Click here to pay for Smart 150]([the actual payment_url value returned by the tool])
-3. If status is FAILED, tell the user clearly that the payment link could not be created and share the reason. Do not retry silently — ask the user if they'd like to try again.
-
-Never ask the user for card details directly. Payment is always completed on Stripe's hosted checkout page via the link you provide.
-
-Never paste the raw URL as plain visible text outside the markdown link syntax — but the URL inside the parentheses of the markdown link must always be the complete, unmodified payment_url value. A shortened, truncated, or partially reproduced URL will not work and will break the payment flow.
-```
-
----
-
-### 2.4 Setup — Import the Payment Tool
-
-This step is done outside the browser in VS Code and a terminal.
-
----
-
-#### Step 1 — Open your IDE
-
-Open **VS Code** and go into your existing `etisalat-bootcamp` folder (already created in [Part 1, Section 1.7](#17-set-up-your-ide-and-adk-environment)).
-
-> Your ADK environment is already set up and activated — no need to repeat those steps.
-
----
-
-#### Step 2 — Create the tool file
-
-```
-File → New File → name it: create_payment_link.py
-```
-
-Paste this code:
-
-```python
-from ibm_watsonx_orchestrate.agent_builder.tools import tool
-from pydantic import BaseModel, Field
-import stripe
-
-stripe.api_key = "sk_test_51Tls7GRriMoAjNdV3T7efWnrIBRQLDuGUEcfXk4oJHQhVAVxjpMv8FDstHZ0qHonFTmqjI9bT5OJ8pwmbnfRmgEj00iPaeMGpY"
-
-SUCCESS_URL = "https://6a424363170ac12c6c5a9eab--spontaneous-torrone-aa8529.netlify.app/"
-CANCEL_URL = "https://6a3bf7055d04772eedef4cc0--animated-entremet-8a202b.netlify.app/"
-
-
-class PaymentLinkResult(BaseModel):
-    status: str = Field(description="CREATED or FAILED")
-    payment_url: str = Field(description="Stripe Checkout URL the user opens to pay, empty if creation failed")
-    session_id: str = Field(description="Stripe Checkout Session ID, empty if creation failed")
-    reason: str = Field(description="Explanation of the result")
-
-
-@tool(
-    name="create_payment_link_<your_last_name>",
-    description="""Creates a Stripe Checkout payment link (test mode) for
-    a selected postpaid plan's monthly rental amount.
-
-    Use this tool once the user has chosen a specific plan tier from the
-    eligible options. It creates a Stripe-hosted Checkout Session for
-    that plan's rental amount and returns a payment URL.
-
-    The user must open the returned payment_url in a browser to complete
-    payment on Stripe's hosted page using a test card (e.g.
-    4242 4242 4242 4242, any future expiry, any CVC). No real charge is
-    made — this runs in Stripe test mode.
-
-    Returns status (CREATED or FAILED), the payment_url, the Stripe
-    session_id, and a reason."""
-)
-def create_payment_link(
-    plan_name: str,
-    rental_aed: float
-) -> PaymentLinkResult:
-    """
-    Creates a Stripe Checkout Session (test mode) for the selected
-    postpaid plan's monthly rental amount.
-
-    Args:
-        plan_name (str): Name of the selected plan, e.g. "Smart 150"
-        rental_aed (float): Monthly rental amount in AED, e.g. 150
-
-    Returns:
-        PaymentLinkResult: status, payment_url, session_id, and reason
-    """
-
-    # ── Basic input validation — exits immediately ──
-    if not plan_name or not plan_name.strip():
-        return PaymentLinkResult(
-            status="FAILED",
-            payment_url="",
-            session_id="",
-            reason="Plan name is required to create a payment link."
-        )
-
-    if rental_aed is None or rental_aed <= 0:
-        return PaymentLinkResult(
-            status="FAILED",
-            payment_url="",
-            session_id="",
-            reason="Rental amount must be a positive number."
-        )
-
-    # ── Create the Stripe Checkout Session ──
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            mode="payment",
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "aed",
-                        "product_data": {
-                            "name": plan_name + " — Monthly rental"
-                        },
-                        "unit_amount": int(round(rental_aed * 100)),
-                    },
-                    "quantity": 1,
-                }
-            ],
-            success_url=SUCCESS_URL,
-            cancel_url=CANCEL_URL,
-        )
-    except Exception as e:
-        return PaymentLinkResult(
-            status="FAILED",
-            payment_url="",
-            session_id="",
-            reason="Stripe checkout session could not be created: " + str(e)
-        )
-
-    return PaymentLinkResult(
-        status="CREATED",
-        payment_url=session.url,
-        session_id=session.id,
-        reason="Checkout session created for " + plan_name + " at " + str(rental_aed) + " AED/month."
-    )
-```
-
-> ⚠️ Go to **line 19** in the code and replace `<your_last_name>` with your last name.
-> **Example:** `name="create_payment_link_ahmed"`
-
-<img width="994" height="682" alt="image" src="https://github.com/user-attachments/assets/bae12088-6fee-494d-933d-cf97f52ff8c5" />
-
-Then save the file (`Ctrl+S` / `Cmd+S`).
-
----
-
-#### Step 3 — Create the requirements file
-
-```
-File → New File → name it: requirements.txt
-```
-
-Paste and save:
-
-```
-stripe>=11.0.0
-ibm-watsonx-orchestrate==2.5.1
-```
-
-Your folder should now look like:
-
-```
-etisalat-bootcamp/
-├── create_payment_link.py
-└── requirements.txt
-```
-
----
-
-#### Step 4 — Import the tool
-
-```bash
-orchestrate tools import --kind python -r requirements.txt -f create_payment_link.py
-```
-
-Verify the tool was imported — go to your browser:
-
-```
-☰ Hamburger menu → Build → All Tools → create_payment_link_<your_last_name>
-```
-
-If `create_payment_link_<your_last_name>` appears in the list, the tool is ready. ✅
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/ce277f5e-b9f7-47a7-b33e-46fd4f513206" />
-
----
-
-### 2.5 Add the Tool in the UI
-
-```
-☰ Hamburger menu → Build → All Agents → payment_agent_<your_last_name>
-```
-
-Click the **Toolset** tab on the left side menu → **Add tool** → **Local instance** → select `create_payment_link_<your_last_name>` → **Add**.
-
----
-
 ## Part 3 — Build the Master Agent
 
 ### 3.1 Create the Agent
 
 ```
-☰ Hamburger menu → Build → Create Agent → From scratch
+☰ Hamburger menu → under Active Inventory, click Agents → Create agent → From scratch
 ```
 
 | Field | Value |
