@@ -241,10 +241,19 @@ In the watsonx Orchestrate UI:
 
 1. Click the **☰ hamburger menu** → under **Active Inventory**, click **Agents**
 2. Click **Create agent**
-3. Click **Build with Bob** — your browser will show a prompt asking to open an `ibm-bob://` link → click **Open Link**
-4. **Bob IDE opens** — inside Bob IDE a pop-up appears asking to install the **watsonx Orchestrate ADK** extension → click **Install Extension and Open URI**
-5. Bob IDE then prompts for your API key for the environment — enter it and press **Enter**
-6. A new task opens in Bob IDE — paste the following prompt:
+4. Click **Build with Bob** — your browser will show a prompt asking to open an `ibm-bob://` link → click **Open Link**
+   <img width="3356" height="1850" alt="image" src="https://github.com/user-attachments/assets/65f547bc-ef4d-4d75-94d5-6964f5aa11f5" />
+   <img width="3358" height="1854" alt="image" src="https://github.com/user-attachments/assets/2225211d-f44c-466b-9d2c-0a7fbbb43c08" />
+6. **Bob IDE opens** — inside Bob IDE a pop-up appears asking to install the **watsonx Orchestrate ADK** extension → click **Install Extension and Open URI**
+   <img width="3354" height="1536" alt="image" src="https://github.com/user-attachments/assets/c25a76fa-2c71-46f0-b199-dd818977bf0e" />
+   <img width="996" height="616" alt="image" src="https://github.com/user-attachments/assets/c01393d9-ae58-4069-9c41-5e35410ef06b" />
+8. Bob IDE then prompts for your API key for the environment — enter it and press **Enter**
+   <img width="1292" height="350" alt="image" src="https://github.com/user-attachments/assets/6ff599b6-44b3-44c2-bdec-dc59fb794365" />
+9. Once the Environment is connected, you should be able to see the workspace in the IDE
+    <img width="3338" height="1864" alt="image" src="https://github.com/user-attachments/assets/665a537e-7f68-419f-bc3e-e59b37b53465" />
+10. A new task opens in Bob IDE — paste the following prompt:
+    <img width="652" height="884" alt="image" src="https://github.com/user-attachments/assets/eb2ae48b-927b-49e2-a4ed-a47ee57c7c5c" />
+
 
 ```
 Create the payment agent for the postpaid eligibility lab on watsonx Orchestrate: a Python tool create_payment_link_<your_last_name>(plan_name, subscription_aed) and a native agent payment_agent_<your_last_name> that uses it (model groq/openai/gpt-oss-120b).
