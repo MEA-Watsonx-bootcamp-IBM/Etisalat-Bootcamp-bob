@@ -1,1 +1,1504 @@
-# Etisalat-Bootcamp-v2
+# Telecom Postpaid Plan Eligibility Bootcamp
+
+**IBM watsonx Orchestrate**
+
+> **Postpaid Plan Eligibility Processing | AI Agent Development Bootcamp**
+>
+> **Goal:** By the end of this lab, you will have built, deployed, and tested an AI Agentic workflow for Postpaid Plan Eligibility Use case on watsonx Orchestrate — a 3-agent pipeline that reads Emirates ID and payslip documents, validates eligibility requirements, recommends eligible plan tiers, and processes payment via Stripe payment gateway.
+
+---
+
+## Use Case Overview
+
+Telecom operators process thousands of postpaid plan applications every
+month. Today this usually means a customer submits a national ID and a
+recent payslip, then waits while a back-office team manually checks
+identity validity, cross-references the applicant's details across
+documents, verifies income, and decides which plans they qualify for.
+
+This lab builds an AI agentic workflow that automates the process for a
+fictional telecom operator, **Connectel**, end to end — from document
+upload and processing going through plan recommendation to final payment.
+
+**Who this is for:** customer onboarding, credit risk, and digital
+channel teams at telecom operators looking to move postpaid sign-up
+from manual back-office review into a self-service, real-time
+conversational flow — without losing the underlying compliance checks
+a manual process would normally perform.
+
+**What the system does, end to end:**
+
+1. A customer uploads their Emirates ID and a recent payslip.
+2. The workflow extracts the relevant fields and runs the same checks a
+   back-office reviewer would: ID validity, a name match across both
+   documents, and a minimum income threshold.
+3. If the applicant doesn't qualify, they get a clear justification
+   immediately instead of a multi-day wait.
+4. If they qualify, the system returns every plan tier they're eligible
+   for based on income, not just one suggested plan.
+5. Once the customer selects and confirms a plan, the system generates
+   a payment link and confirms the subscription in the same conversation.
+
+> **Note:** The plan names, salary thresholds, and credit limit figures
+> used in this lab are illustrative — not a real operator's published
+> rate card.
+
+---
+
+## Table of Contents
+
+- [What is watsonx Orchestrate?](#1-what-is-watsonx-orchestrate)
+- [Architecture Overview](#2-architecture-overview)
+- [What Gets Checked?](#3-what-gets-checked)
+- [Prerequisites](#prerequisites)
+- [Accessing Your Environment](#accessing-your-environment)
+- [Documents](#documents)
+- [Part 1 — Document Agent](#part-1--build-sub-agent-1-document-agent)
+- [Part 2 — Payment Agent](#part-2--build-sub-agent-2-payment-agent)
+- [Part 3 — Master Agent](#part-3--build-the-master-agent)
+- [Part 4 — Full Pipeline Test](#part-4--full-pipeline-test)
+- [Part 5 — Test Scenarios](#part-5--test-scenarios)
+
+---
+
+## 1. What is watsonx Orchestrate?
+
+IBM watsonx Orchestrate is an open, hybrid enterprise platform for agentic AI. It lets you build intelligent agents that can:
+
+- Reason and make decisions
+- Call external tools and APIs
+- Process documents automatically
+- Run structured, multi-step workflows
+
+### Development Approaches
+
+| Approach | Description |
+|---|---|
+| No-code | Drag-and-drop UI agent builder |
+| Chat to build | Create agents via natural language prompting |
+| Pro-code (ADK) | Full control via the Agent Development Kit |
+| Flow-builder | Visual agentic workflow builder |
+
+> In this bootcamp we use **No-code UI** for agents, **Flow-builder** for document extraction workflow, and **ADK** for the payment tool.
+
+---
+
+## 2. Architecture Overview
+
+We will build a **Postpaid Plan Eligibility Workflow** — a 3-agent pipeline that processes identity documents, validates eligibility, and processes payment.
+
+```
+User
+ │
+ │  uploads: Emirates ID + Payslip
+ ▼
+┌─────────────────────────────────────┐
+│   Postpaid Eligibility Agent         │  ← Master Agent (watsonx Orchestrate)
+│   Orchestrates the full flow        │     Style: React
+└────────────┬────────────────────────┘
+             │
+     ┌───────┴────────┐
+     │                │
+     ▼                ▼
+┌────────────────┐  ┌──────────────────────────┐
+│ document_agent │  │    payment_agent          │
+│                │  │                          │
+│ Agentic        │  │ Python tool (ADK)         │
+│ Workflow (UI)  │  │ Stripe integration        │
+│ Style: React Core │  │ Style: React Core            │
+│                │  │                          │
+│ · User upload  │  │ · create_payment_link     │
+│ · Emirates ID  │  │ · Test mode checkout      │
+│   extractor    │  │ · Returns payment URL     │
+│ · Payslip      │  │                          │
+│   extractor    │  └──────────────────────────┘
+│ · Eligibility  │
+│   check script │
+│ · Package JSON │
+│ · Knowledge    │
+│   base lookup  │
+└────────────────┘
+         │
+         ▼
+  ┌──────────────────────┐
+  │   Eligibility Result │
+  │   PASS → Plan tiers  │
+  │   FAIL → Reason      │
+  └──────────────────────┘
+         │
+         ▼
+  ┌──────────────────────┐
+  │   Payment Link       │
+  │   Stripe Checkout    │
+  └──────────────────────┘
+```
+
+---
+
+## 3. What Gets Checked?
+
+| # | Check | Rule |
+|---|---|---|
+| 1 | **Emirates ID validity** | Must be valid for 90+ days from today |
+| 2 | **Name cross-check** | Name on Emirates ID must match payslip employee name |
+| 3 | **Salary threshold** | Gross salary must be ≥ 4000 AED |
+
+If all checks pass, the system retrieves eligible plan tiers from the knowledge base based on the customer's salary and presents them for selection.
+
+---
+
+## Prerequisites
+
+Before starting, make sure you have:
+
+- **Python 3.11** installed on your machine
+- **VS Code** (or any code editor)
+- **IBM Cloud invitation email** — you should have received this before the session. If not, Check with your instructor before proceeding.
+
+---
+
+## Accessing Your Environment
+
+You will receive an invitation email from IBM Cloud to join the bootcamp Orchestrate environment. Follow these steps to get in.
+
+---
+
+### Step 1 — Accept the Invitation
+
+1. Open the invitation email from IBM Cloud (subject: "Action required: You are invited to join an account in IBM Cloud")
+2. Click **Join now**
+3. On the next screen, click **Join Account**
+<img width="1443" height="801" alt="image" src="https://github.com/user-attachments/assets/843dfab5-a57b-4e14-a914-e6864ea7860d" />
+
+> If you already have an IBM ID registered to this email address, log in with it. If not, create a new IBM ID — it only takes a minute.
+
+---
+
+### Step 2 — Launch watsonx Orchestrate
+
+Once you are logged in to IBM Cloud:
+
+1. You should see **itz-watsonx-event-001** displayed in the top navigation bar next to the IBM Cloud logo
+2. Click the **☰ hamburger menu** (top-left)
+3. Click **Resource list**
+4. Click **AI / Machine Learning**
+5. Under it, find **Watson Orchestrate** and click it
+6. Click **Launch watsonx Orchestrate**
+<img width="1424" height="482" alt="image" src="https://github.com/user-attachments/assets/bbba5d44-8bd4-4e19-82f0-2a915de59846" />
+<img width="1413" height="497" alt="image" src="https://github.com/user-attachments/assets/af4af491-c335-49c8-b2db-c7bf2bbd6c0e" />
+
+
+This opens your watsonx Orchestrate environment — this is where you will build everything in this lab.
+
+---
+
+### Step 3 — Save Your Credentials
+
+You will need these two values throughout the lab. Follow these steps to retrieve them from your environment.
+
+1. Click your **Profile icon** (top-right corner)
+2. Click **Settings** → **API details** tab
+3. Copy the **Service instance URL** shown on the page and save it
+4. Click **Generate API key**
+5. Click **Create**
+
+   <img width="1311" height="748" alt="image" src="https://github.com/user-attachments/assets/bd953873-acec-4c4f-8fac-c9c45a09c3b9" />
+
+6. Enter your **name** in the name field — leave all other fields as they are
+7. Click the button in the bottom-right corner — copy and save the generated API key
+
+> ⚠️ Save both values — you will need them in [Step 3 — Install the ADK](#step-3--install-the-adk-and-activate-your-environment)
+
+| Credential | Where to find it |
+|---|---|
+| Service instance URL | Settings → API details tab → Copy instance url at the bottom |
+| API key | Settings → API details tab → Generate API key → Create → enter name → copy |
+
+---
+
+## Documents
+
+Three sets of Emirates ID and payslip documents are provided. Each has a specific role:
+
+| Role | Files | Location |
+|---|---|---|
+| 🔵 Training — used while building | EID_Train.png, Payslip_Train.png | [documents/training/](documents/training/) |
+| ✅ Test: PASS | EID_Pass.png, Payslip_Pass.png | [documents/Pass Test/](documents/Pass%20Test/) |
+| ❌ Test: FAIL | EID_Fail.png, Payslip_Fail.png | [documents/Fail Test/](documents/Fail%20Test/) |
+
+> During **Part 1** upload the **training documents** into the Document Extractor nodes.
+> Swap to test documents during [Test Scenarios](#test-scenarios).
+
+---
+
+## Part 1 — Build Sub-Agent 1: Document Agent
+
+> **Accessing your environment:**
+> Open the watsonx Orchestrate instance URL from your welcome email, log in, and you will land on the home page.
+
+---
+
+### 1.1 Create the Agent
+
+```
+☰ Hamburger menu → Build → Create Agent → From scratch
+```
+<img width="1237" height="701" alt="image" src="https://github.com/user-attachments/assets/e6cf751f-bd77-4b52-87d2-1f031e984354" />
+<img width="1311" height="732" alt="image" src="https://github.com/user-attachments/assets/112dfb9f-9ae8-4c12-8b76-2f532fc5260a" />
+
+
+| Field | Value |
+|---|---|
+| Name | `document_agent_<your_last_name> (eg: document_agent_ahmed)`|
+| Description | Extracts structured information from uploaded Emirates ID documents and payslips for postpaid eligibility verification. Reads Emirates ID and extracts full name, ID number, date of birth, expiry date. Reads payslip and extracts employee name, company name, gross salary, pay period. Returns all extracted fields in structured format for downstream eligibility validation. |
+
+---
+
+### 1.2 Add the Instructions
+
+Click the **Instructions** tab and paste:
+
+```
+Call document_extract_tool ALWAYS.
+
+After document_extract_tool finishes, inspect the eligibility status before responding to the user.
+
+If eligibility status is PASS, DO NOT respond yet. You MUST immediately call get_postpaid_plans exactly once, wait for its result, complete the plan verification steps below, and only then return the final response to the user.
+
+If eligibility status is FAIL, return the extracted fields and rejection reason without calling get_postpaid_plans.
+
+Do not produce any user-facing response between the document_extract_tool call and the get_postpaid_plans tool call when eligibility status is PASS.
+
+Always show the extracted fields and eligibility status.
+
+If eligibility status is FAIL:
+Do not retrieve plans.
+Only explain the rejection reason.
+
+If eligibility status is PASS:
+
+STEP 1 — Retrieve:
+You MUST call the get_postpaid_plans tool before doing any plan analysis or generating the final response. This tool call is mandatory whenever the eligibility status is PASS. Do not skip this tool call for any reason, and do not proceed to STEP 2 until the get_postpaid_plans tool has successfully returned its output.
+
+Call the get_postpaid_plans tool exactly once. It returns a JSON string with a "plans" key containing a list of plan objects (plan, min_salary_aed, monthly_rental_aed, credit_limit_aed). Do not use prior knowledge, conversation context, cached information, or knowledge base search to obtain or infer the plan list — the get_postpaid_plans tool is the only source of truth for plans.
+
+The tool output is a raw JSON string. Do not display it. Parse it internally before doing anything else.
+
+STEP 2 — Analyse and verify (do this internally before responding, do not show this to the user):
+Parse the JSON string returned by get_postpaid_plans. Extract the list under the "plans" key. Then reason through each record:
+- Check whether the plan name, rental amount, and credit limit are all present, non-empty, and non-zero. If any field is missing or zero, exclude that record.
+- Reason explicitly about internal consistency: a higher rental should correspond to a higher minimum salary and credit limit. Flag and exclude any record that looks inconsistent.
+- If any two records share the same plan name or rental amount, keep only one instance.
+
+STEP 3 — Present final output (this is the only thing shown to the user):
+Only after completing Step 2, present the results to the user in this exact order:
+
+First, show the extracted user details from the workflow output:
+- Full Name
+- ID Number
+- Nationality
+- Date of Birth
+- Expiry Date
+- Employee Name
+- Gross Salary
+
+Then, show the verified eligible plans formatted as a markdown table with three columns: Plan, Monthly Rental (AED), Credit Limit (AED). Populate each row from the parsed plan objects — never paste the raw JSON string:
+
+| Plan | Monthly Rental (AED) | Credit Limit (AED) |
+|---|---|---|
+| ... | ... | ... |
+
+The final plans table must contain only plans that:
+  - Have a minimum salary at or below the customer's gross salary, AND
+  - Have complete, valid field values that are internally consistent.
+
+Return all eligible plans that passed both checks — never omit a qualifying plan, and never include a plan that failed either check.
+If after verification no plans pass both checks, say so clearly and do not fabricate a result.
+
+Never output the raw JSON string from get_postpaid_plans to the user under any circumstances. Only the formatted markdown table is shown.
+
+Do not show any reasoning, intermediate steps, retrieval results, plan counts, or internal checks to the user — only the user details and the formatted plans table.
+
+After presenting the final output, return the complete raw output from the document_extract_tool workflow exactly as received, without modification. Do not call any payment tool or initiate any payment step — payment is handled by a separate agent.
+```
+
+---
+
+### 1.3 Verify Agent Style
+
+Scroll down on the agent page → click **Advanced settings** → confirm **Style** is set to `React Core`. If not, click the dropdown and select it.
+
+<img width="682" height="731" alt="image" src="https://github.com/user-attachments/assets/02dc153b-aa04-4a47-bdac-9a112769a3c4" />
+
+---
+
+### 1.4 Create the Agentic Workflow
+
+In the top menu, click **Add tool** → Select **Agentic Workflow**.
+
+<img width="1332" height="706" alt="image" src="https://github.com/user-attachments/assets/f73dc1ba-c4bc-428e-9ed4-790de975eaf2" />
+<img width="891" height="728" alt="image" src="https://github.com/user-attachments/assets/e032c9d3-c052-4923-ae3b-a84beb8687ec" />
+
+When prompted, enter a name for the workflow:
+
+```
+document_extract_tool_<your_last_name>
+```
+
+> ⚠️ Replace `<your_last_name>` with your last name. **Example:** `document_extract_tool_ahmed`
+
+Click **start building**. This opens the workflow canvas.
+
+> **How to add nodes:**
+> Hover over the arrow between two nodes → click the **+** button that appears → select the node type from the menu.
+
+---
+
+### 1.5 Build the Workflow
+
+#### Node 1 & 2 — Collect from User (File Upload)
+
+Click **+** on the arrow between START and END → select **Collect from user → Upload file**
+
+<img width="1317" height="713" alt="image" src="https://github.com/user-attachments/assets/5369bbce-0902-4928-844e-d4a3a05a8b04" />
+
+> **Rename:** Click the **pencil icon** (top-left of node) → type `Emirates ID`
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/2ebabfe8-a5f4-4c81-ae90-9f6dea867921" />
+
+Similarly add 1 more node after the previous node by clicking **+**, Label it `Payslip`
+
+It should now look like this with two upload nodes:
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/a80414d0-52e0-46fc-9908-2682d8e5fdef" />
+
+
+| Label |
+|---|
+| `Emirates ID` |
+| `Payslip` |
+
+> There are no variable names here — just the label. The workflow waits until both files are uploaded before continuing.
+
+---
+
+#### Node 3 — Document Extractor (Emirates ID)
+
+Click **+** on the arrow between Node 1 and END → select **Add a flow activity → Document extractor**
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/9d1b65a2-f901-4a38-8237-7d85b498fcf0" />
+
+Click on the node to open its configuration panel.
+
+When prompted, select document type: `Unstructured`
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/0da8020e-9f02-4e87-8f4e-4d55a770db59" />
+
+> **Rename:** Click the **pencil icon** (top-left of node) → type `Extract emirates ID fields`
+>
+> **Change model:** Click the model selector (top-right of node) → select `gpt-oss-120b`
+
+Drag and drop the training Emirates ID file `EID_Train.png` into the document upload area of the node.
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/fdd034e8-2002-4160-a3d2-d425dcdc272c" />
+
+> This is the training document.
+
+Click **Add field** and add the fields in the table below.
+For each field, click the **⋮ three-dot menu** → **Edit** to set its type and description.
+<img width="1293" height="764" alt="image" src="https://github.com/user-attachments/assets/ba77d92b-a06c-40e1-ab9b-192d965206ae" />
+<img width="1324" height="780" alt="image" src="https://github.com/user-attachments/assets/fbca5b57-0558-4a80-afe4-b1d2d31119ea" />
+
+| Field name | Type | Description |
+|---|---|---|
+| `ID Number` | string | Extract the Emirates ID number exactly as shown on the card, usually in the format 784-XXXX-XXXXXXX-X. |
+| `Full Name` | string | Extract the card holder's full name exactly as written in English on the Emirates ID. |
+| `Date of Birth` | date | Extract the card holder's date of birth exactly as shown on the Emirates ID. Return in YYYY-MM-DD format if possible. |
+| `Nationality` | string | Extract the card holder's nationality from the Emirates ID. Look for the label "Nationality" or "الجنسية". Return only the nationality value, not the label. The value may be a country name such as United Arab Emirates, Saudi Arabia, India, Pakistan, Egypt, Philippines, Jordan, Syria, or another nationality. If both English and Arabic are shown, return the English nationality. |
+| `Expiry Date` | date | Extract the expiry date of the Emirates ID exactly as shown on the card. This field will be used later for eligibility validation. |
+| `Date of Issue` | date | Extract the issue date of the Emirates ID exactly as shown on the card. |
+
+<details>
+<summary> <strong>💡 Optional — Map the document Source (click to expand) </strong> </summary>
+
+1. Click **X** (top-right of the panel) to close it
+2. Click the `Extract emirates ID fields` node again to reopen it
+3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
+4. Click **`{x}`** on the `document_ref` field
+5. Under **User activity 1**, select `Emirates ID`
+6. On the right side, select `value`
+
+</details>
+
+---
+
+#### Node 4 — Document Extractor (Payslip)
+
+Click **+** between Node 2 and END → select **Add a flow activity → Document extractor**
+
+Click on the node to open its configuration panel.
+
+Select document type: `Unstructured`
+
+> **Rename:** `Extract payslip fields`
+>
+> **Change model:** `gpt-oss-120b`
+
+Drag and drop the training payslip file `Payslip_Train.png` into the document upload area of the node.
+
+> This is the training document. You will swap it during test scenarios.
+
+Click **Add field** and add the fields in the table below.
+For each field, click the **⋮ three-dot menu** → **Edit** to set its type and description.
+
+| Field name | Type | Description |
+|---|---|---|
+| `Employee Name` | string | Extract the employee's full name exactly as written in the payslip, usually found next to the label "Employee Name" or "Name" |
+| `gross salary` | string | Extract the gross salary amount from the payslip exactly as shown next to "Gross Salary". Return only the numeric value without currency symbols or commas. specifically look at the gross salary section|
+
+<details>
+<summary> <strong>💡 Optional — Map the document Source (click to expand) </strong> </summary>
+
+1. Click **X** (top-right of the panel) to close it
+2. Click the `Extract payslip fields` node again to reopen it
+3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
+4. Click **`{x}`** on the `document_ref` field
+5. Under **User activity 1**, select `Payslip`
+6. On the right side, select `value`
+
+</details>
+
+---
+
+#### Node 5 — Logic Block (Eligibility Check)
+
+Click **+** between Node 4 and END → select **Add a flow activity → Logic block**
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/1b288b54-ba99-4f07-aded-b18dc4f78677" />
+
+Click on the node to open its configuration panel.
+
+> **Rename:** `Eligibility Check`
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/d9eb3f04-36c2-4eb6-b923-813d2f039c1b" />
+
+**Logic block code** — paste this Python code:
+
+<img width="808" alt="image" src="https://github.com/user-attachments/assets/9ee3b9f8-15f6-4b49-92eb-cb858fd5fe61" />
+
+```python
+# ---- Pull extracted fields from the two upstream document extractor nodes ----
+id_fields = parent["Extract emirates ID fields"].output
+payslip_fields = parent["Extract payslip fields"].output
+
+id_name_raw = id_fields.get("full_name", "")
+payslip_name_raw = payslip_fields.get("employee_name", "")
+expiry_str = id_fields.get("expiry_date", "")
+gross_salary = float(payslip_fields.get("gross_salary", 0))
+
+# ---- Check 1: Cross-name validation ----
+def normalize_name(name):
+    name = name.lower().strip()
+    name = re.sub(r"[^a-z\s]", "", name)
+    name = re.sub(r"\s+", " ", name)
+    return name
+
+id_name_norm = normalize_name(id_name_raw)
+payslip_name_norm = normalize_name(payslip_name_raw)
+
+id_tokens = set(id_name_norm.split())
+payslip_tokens = set(payslip_name_norm.split())
+
+if len(id_tokens) == 0 or len(payslip_tokens) == 0:
+    name_match = False
+elif id_tokens.issubset(payslip_tokens) or payslip_tokens.issubset(id_tokens):
+    name_match = True
+else:
+    common = id_tokens.intersection(payslip_tokens)
+    name_match = len(common) >= 2
+
+# ---- Check 2: Expiry date (fail if missing, expired, or expiring within 3 months) ----
+today = datetime.date.today()
+three_months_out = today + datetime.timedelta(days=90)
+
+expiry_str_clean = expiry_str.strip() if expiry_str else ""
+expiry_date = None
+
+if expiry_str_clean != "":
+    # ISO 8601 is the platform's native date format; others are fallbacks
+    # in case the extractor returns a differently formatted string.
+    date_formats = [
+        "%Y-%m-%d",    # ISO 8601 - native flow date format
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+        "%m/%d/%Y",
+        "%d %B %Y",
+        "%d %b %Y",
+    ]
+    for fmt in date_formats:
+        try:
+            expiry_date = datetime.datetime.strptime(expiry_str_clean, fmt).date()
+            break
+        except ValueError:
+            continue
+
+if expiry_date is None:
+    id_valid = False
+elif expiry_date < today:
+    id_valid = False
+elif expiry_date <= three_months_out:
+    id_valid = False
+else:
+    id_valid = True
+
+# ---- Check 3: Salary threshold ----
+if gross_salary >= 4000:
+    salary_pass = True
+else:
+    salary_pass = False
+
+# ---- Overall result: ALL checks must pass ----
+if name_match and id_valid and salary_pass:
+    status = "PASS"
+    reason = "All checks passed"
+else:
+    if not name_match:
+        reason = "Name on Emirates ID does not match payslip"
+    elif not id_valid:
+        if expiry_str_clean == "":
+            reason = "Emirates ID expiry date missing or unreadable"
+        else:
+            reason = "Emirates ID expired or expiring within 3 months"
+    else:
+        reason = "Salary below 4000"
+    status = "FAIL"
+
+# ---- Outputs for downstream nodes ----
+self.output.status = status
+self.output.reason = reason
+```
+
+**Output schema** — click **Output variables** tab → **Add variable**:
+
+<img width="880" alt="image" src="https://github.com/user-attachments/assets/9fb2ebe8-0c42-4e50-81c3-d1bf34eccf55" />
+
+<img width="880" alt="image" src="https://github.com/user-attachments/assets/c6a217f9-0090-4d69-92f9-9369c058f138" />
+
+| Variable name | Type | Description |
+|---|---|---|
+| `status` | string | Final eligibility status (PASS or FAIL) |
+| `reason` | string | Reason for approval or rejection |
+
+
+
+---
+
+#### Node 6 — Generative Prompt (Package Output)
+
+Click **+** between Node 5 and END → select **Add a flow activity → Generative prompt**
+
+Click on the node to open its configuration panel.
+
+<img width="880" alt="image" src="https://github.com/user-attachments/assets/636afa32-e1e6-4b40-a1b3-02dc64455451" />
+
+**Input variables** — click the **Input variables** tab → **Add variable**:
+
+<img width="1299" height="757" alt="image" src="https://github.com/user-attachments/assets/0d307030-ef2b-4798-8a4a-099017c13810" />
+
+| Variable name | Type |
+|---|---|
+| `full_name` | string |
+| `id_number` | string |
+| `expiry_date` | date |
+| `nationality` | string |
+| `gross_salary` | string |
+| `date_of_birth` | date |
+| `employee_name` | string |
+| `status` | string |
+| `reason` | string |
+
+**System Prompt:**
+
+```
+You are a data packaging assistant for telecom eligibility processing.
+Your only job is to combine extracted document data into a clean JSON object.
+You must return only valid JSON. No explanation, no commentary, no extra text.
+Never modify, correct, or interpret any field values.
+Always preserve the exact values as given to you.
+```
+
+**User Prompt:**
+
+```
+Combine the two documents into a single JSON object that has exactly three top‑level keys: **emirates_id**, **payslip**, and **eligibility**.
+
+**Emirates ID data** (replace the placeholders with the actual values):
+- ID Number: {self.input.id_number}
+- Full Name: {self.input.full_name}
+- Date of Birth: {self.input.date_of_birth}
+- Nationality: {self.input.nationality}
+- Expiry Date: {self.input.expiry_date}
+
+**Payslip data** (replace the placeholders with the actual values):
+- Employee Name: {self.input.employee_name}
+- Gross Salary: {self.input.gross_salary}
+
+**Eligibility data** (replace the placeholders with the actual values; if a value is not available, use an empty string `""`):
+- Status: {self.input.status}
+- Reason: {self.input.reason}
+
+**Return only** the following JSON structure—no extra text, no formatting, and no additional keys:
+
+{
+  "emirates_id": {self.input.
+    "id_number": "{self.input.id_number}",
+    "full_name": "{self.input.full_name}",
+    "date_of_birth": "{self.input.date_of_birth}",
+    "nationality": "{self.input.nationality}",
+    "expiry_date": "{self.input.expiry_date}"
+  },
+  "payslip": {self.input.
+    "employee_name": "{self.input.employee_name}",
+    "gross_salary": "{self.input.gross_salary}"
+  },
+  "eligibility": {self.input.
+    "status": "{self.input.status}",
+    "reason": "{self.input.reason}"
+  }
+}
+
+**RULE:**
+- **Always** output every field shown above (`id_number`, `full_name`, `date_of_birth`, `nationality`, `expiry_date`, `employee_name`, `gross_salary`, `status`, `reason`).
+- If a particular value is unknown or not provided, insert an empty string (`""`) for that field.
+- Do **not** omit any keys, do **not** add extra keys, and do **not** include any explanatory text or markdown formatting. The response must be a plain JSON object exactly as shown.
+```
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/e144b6a6-85a0-4008-9c25-ebde9b77c169" />
+
+**Data Mapping:**
+
+1. Click **X** (top-right of the panel) to close it
+2. Click the `Generative prompt` node again to reopen it
+3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
+
+For each input variable, click **`{x}`** and use the variable picker:
+
+| Input variable | Source component | Variable to select |
+|---|---|---|
+| `full_name` | Extract emirates ID fields | `full_name` |
+| `id_number` | Extract emirates ID fields | `id_number` |
+| `expiry_date` | Extract emirates ID fields | `expiry_date` |
+| `nationality` | Extract emirates ID fields | `nationality` |
+| `date_of_birth` | Extract emirates ID fields | `date_of_birth` |
+| `employee_name` | Extract payslip fields | `employee_name` |
+| `gross_salary` | Extract payslip fields | `gross_salary` |
+| `status` | Eligibility Check | `status` |
+| `reason` | Eligibility Check | `reason` |
+
+---
+
+#### Final Canvas
+
+```
+START
+  │
+  ▼
+User activity 1  (Collect from user → Upload files: Emirates ID, Payslip)
+  │
+  ▼
+Extract emirates ID fields  (Document Extractor)
+  │
+  ▼
+Extract payslip fields  (Document Extractor)
+  │
+  ▼
+Eligibility Check  (Logic block)
+  │
+  ▼
+Generative prompt  (Package Output)
+  │
+  ▼
+END
+```
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/814df0b2-d282-419c-ace1-c80288818d4c" />
+
+#### Configure the Output Node
+
+After the workflow is created, configure the END node to expose the workflow output:
+
+1. Click the **END** node → click **Add** → click **Output**
+2. Select type **String**
+3. In the name field, type `value` and click **Apply**
+3. Close the panel, then click the **END** node again to reopen it
+4. At the bottom-right of the panel, click the **settings icon** (⚙)
+5. Click **`{x}`** next to `value`
+6. Under **Generative prompt**, select `value` (the blue text on the right side)
+
+<img width="1153" height="594" alt="image" src="https://github.com/user-attachments/assets/a401d60a-06e5-4311-b3d3-a76932e6bd5d" />
+<img width="1357" height="698" alt="image" src="https://github.com/user-attachments/assets/90eb6354-58f3-442a-912b-0170faa330ae" />
+
+
+#### Enable Agent Summarisation
+
+1. Click the **settings icon** (⚙) at the top of the canvas, next to the workflow name
+2. A panel opens on the right side — toggle **Agent summarisation** on
+
+<img width="1301" height="606" alt="image" src="https://github.com/user-attachments/assets/e3e4efe0-522d-4fb5-a7b8-916df89aa2cf" />
+
+---
+
+### 1.6 Save and Exit
+
+Click **Done** (top-right) to return to the agent page.
+
+---
+
+### 1.7 Set Up Your IDE and ADK Environment
+
+Before importing any tools, set up VS Code and activate your Orchestrate environment. You only need to do this once — it covers both the knowledge base tool and the payment tool.
+
+---
+
+#### Step 1 — Open your IDE
+
+Open **VS Code**. Create a new folder on your desktop called `etisalat-bootcamp`.
+
+```
+File → Open Folder → select etisalat-bootcamp
+```
+
+---
+
+#### Step 2 — Open the terminal in VS Code
+
+```
+Terminal → New Terminal
+```
+
+A terminal panel opens at the bottom of VS Code pointing to your `etisalat-bootcamp` folder.
+
+---
+
+#### Step 3 — Install the ADK and activate your environment
+
+Install the ADK:
+
+**Windows:**
+```bash
+pip install ibm-watsonx-orchestrate
+```
+
+**Mac:**
+```bash
+pip3 install ibm-watsonx-orchestrate
+```
+
+Add your environment — replace `<your-instance-url>` with the **Service instance URL** you copied in [Accessing Your Environment](#accessing-your-environment):
+
+```bash
+orchestrate env add -n EtisalatBootcamp -u <your-instance-url>
+```
+<img width="1113" height="88" alt="image" src="https://github.com/user-attachments/assets/44bf0822-4add-40ea-a699-3ebfb7a66fd6" />
+
+> `-n EtisalatBootcamp` is the name for this environment. You will use it every session.
+
+Activate the environment:
+
+```bash
+orchestrate env activate EtisalatBootcamp
+```
+When prompted, enter your **API key** and press Enter.
+<img width="1104" height="141" alt="image" src="https://github.com/user-attachments/assets/2fb5d1b8-5470-453b-924b-1e2ae9d5a9bd" />
+
+---
+
+### 1.8 Import Knowledge Base Tool
+
+> 📌 This tool acts as the knowledge base for the agent — it connects directly to Milvus and retrieves the full postpaid plan catalogue deterministically, replacing a conversational knowledge base lookup.
+
+This step imports `get_postpaid_plans` — a Python tool that queries the Milvus plans database and returns the full plan catalogue.
+
+---
+
+#### Step 1 — Create the tool file
+
+Go into your `etisalat-bootcamp` folder in VS Code and create a new file:
+
+```
+File → New File → name it: get_postpaid_plans.py
+```
+
+Paste this code:
+
+```python
+"""Deterministic postpaid-plan lookup for the e& eligibility demo.
+
+Queries the Client Engineering Milvus instance (161.156.199.100:8080, gRPC+TLS)
+directly and returns the full plan catalogue as JSON.
+"""
+
+import json
+import os
+import tempfile
+
+from ibm_watsonx_orchestrate.agent_builder.tools import tool
+
+_MILVUS_HOST = "161.156.199.100"
+_MILVUS_PORT = "8080"
+_MILVUS_USER = "root"
+_MILVUS_PASSWORD = "YourStrongPassword123!"
+
+_CA_PEM = """-----BEGIN CERTIFICATE-----
+MIIDojCCAoqgAwIBAgIUfQBXSJmqkgsZvf89eYCcQ2H7epMwDQYJKoZIhvcNAQEL
+BQAwWDELMAkGA1UEBhMCR0IxGzAZBgNVBAoMEkNsaWVudCBFbmdpbmVlcmluZzES
+MBAGA1UECwwJQVMgYW5kIFBXMRgwFgYDVQQDDA8xNjEuMTU2LjE5OS4xMDEwHhcN
+MjYwNzAxMTEzNzAyWhcNMzYwNjI4MTEzNzAyWjBYMQswCQYDVQQGEwJHQjEbMBkG
+A1UECgwSQ2xpZW50IEVuZ2luZWVyaW5nMRIwEAYDVQQLDAlBUyBhbmQgUFcxGDAW
+BgNVBAMMDzE2MS4xNTYuMTk5LjEwMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
+AQoCggEBAJMBSYTKpiQ3vKyrf7DM9fAlSuT04DbVtkOpSxE6PStk9zD/G590Hy7f
+sIwp4HAn1Wmhqm+/REX0+9dlnQSz2t5bfVPnTIcX+kAVNd2b4hKN9Ckblw962Ltu
+1dq4aDYtcyXPUQrK4C8qr4yPSvxTw5T+vIBvCHmejcHzNvtMLeYLuVlNvxf6Dq93
+d18T6iVZ9yzqcwm9+AqImFSM1qjDqukkxd0/ytcMXdnh1FYxnrzONG0EgUiJlqHA
+1gTMAqaZjRDr7FMrf5GWEWe9knmx86aIdoySfJZpzTxFdXbTvIJYvy2iwZcrtwl5
+dw6ZNltdAJZgJNcMYhOrdiO+dEMRLXECAwEAAaNkMGIwHQYDVR0OBBYEFDPWdPwn
+yJFyj5D/RGK4dX3lohn+MB8GA1UdIwQYMBaAFDPWdPwnyJFyj5D/RGK4dX3lohn+
+MA8GA1UdEwEB/wQFMAMBAf8wDwYDVR0RBAgwBocEoZzHZDANBgkqhkiG9w0BAQsF
+AAOCAQEAURZHbiPZuOJBJOEXuBb1h5nTiwBBqleJLrmkjFZr5nE6jFxSZS1htqu0
+BVT8vLnFq1NwRiAZn5jYvkJsEunZCOxmoZIampwAT4MoM4rZwr0/yiylpRzKyFkb
+eTXgHPJoFJquOamIuVAl7jSHzVS8G759clNEch+5fsl388LdjkzPygOBLyg8I8Jn
+QuI2Nqp45KMFnVGybk3Di/DQ3Qv1EYYCPfAqiEKRqm/C0AF3jSerVsNna5DrQvo9
+GmZN7oL7WEzTwqAFYDF/+JXIwaxiML0+bu5LDgeIcJ4Et4Atb5zsUKCUGBx/Bm6R
+RWrrFm6Z2Q5u3KuIlvPmDEQ+cWtFXQ==
+-----END CERTIFICATE-----
+"""
+
+
+@tool(name="get_postpaid_plans_<your_last_name>")
+def get_postpaid_plans() -> str:
+    """Retrieve the complete, authoritative postpaid plan catalogue from the plans database.
+
+    Returns every available postpaid plan with its plan name, minimum salary
+    requirement (AED), monthly rental (AED) and credit limit (AED), as a JSON
+    string. Always call this tool to obtain the plan list when checking which
+    plans a customer is eligible for — the data is exact and complete.
+    """
+    from pymilvus import Collection, connections
+
+    pem = tempfile.NamedTemporaryFile("w", suffix=".pem", delete=False)
+    try:
+        pem.write(_CA_PEM)
+        pem.close()
+        connections.connect(
+            alias="plans",
+            host=_MILVUS_HOST,
+            port=_MILVUS_PORT,
+            secure=True,
+            server_pem_path=pem.name,
+            user=_MILVUS_USER,
+            password=_MILVUS_PASSWORD,
+        )
+        col = Collection("postpaid_plans", using="plans")
+        col.load()
+        rows = col.query(
+            expr="tier >= 0",
+            output_fields=["plan_name", "min_salary_aed", "rental_aed", "credit_limit_aed"],
+        )
+        plans = [
+            {
+                "plan": r["plan_name"],
+                "min_salary_aed": int(r["min_salary_aed"]),
+                "monthly_rental_aed": int(r["rental_aed"]),
+                "credit_limit_aed": int(r["credit_limit_aed"]),
+            }
+            for r in sorted(rows, key=lambda r: r["rental_aed"])
+        ]
+        return json.dumps({"plans": plans})
+    except Exception as exc:
+        return json.dumps({"error": f"{type(exc).__name__}: {exc}"})
+    finally:
+        os.unlink(pem.name)
+```
+
+> ⚠️ Go to **line 43** and replace `<your_last_name>` with your last name.
+> **Example:** `name="get_postpaid_plans_ahmed"`
+
+Then save the file (`Ctrl+S` / `Cmd+S`).
+
+---
+
+#### Step 2 — Create the requirements file
+
+```
+File → New File → name it: requirements_kb.txt
+```
+
+Paste and save:
+
+```
+pymilvus==2.6.1
+```
+
+Your folder should now look like:
+
+```
+etisalat-bootcamp/
+├── get_postpaid_plans.py
+└── requirements_kb.txt
+```
+
+---
+
+#### Step 3 — Import the tool
+
+In your terminal:
+
+```bash
+orchestrate tools import --kind python -r requirements_kb.txt -f get_postpaid_plans.py
+```
+<img width="1118" height="94" alt="image" src="https://github.com/user-attachments/assets/4b6b9eb2-20de-4a5b-b290-aaef7c62018e" />
+
+Verify the tool was imported — go to your browser:
+
+```
+☰ Hamburger menu → Build → All Tools → get_postpaid_plans_<your_last_name>
+```
+
+If it appears in the list, the tool is ready. ✅
+
+---
+
+#### Step 4 — Add the tool to document_agent
+
+```
+☰ Hamburger menu → Build → All Agents → document_agent_<your_last_name>
+```
+
+Click the **Tool** tab → **Add tool** → **Local instance** → select `get_postpaid_plans_<your_last_name>` → **Add**.
+<img width="873" height="722" alt="image" src="https://github.com/user-attachments/assets/94d2e768-4076-4913-b9bf-82e413bae6e9" />
+
+---
+
+
+## Part 2 — Build Sub-Agent 2: Payment Agent
+
+### 2.1 Create the Agent
+
+```
+☰ Hamburger menu → Build → Create Agent → From scratch
+```
+
+| Field | Value |
+|---|---|
+| Name | `payment_agent_<your_last_name> (eg: payment_agent_ahmed)`|
+| Description | Handles payment collection for a postpaid plan the user has selected. Creates a Stripe test-mode checkout link for the chosen plan's monthly rental amount and shares it with the user to complete payment. |
+
+---
+
+### 2.2 Verify Agent Style
+
+Scroll down on the agent page → click **Advanced settings** → confirm **Style** is set to `React Core`. If not, click the dropdown and select it.
+
+> The **Description** and **Style** must be set before adding instructions. Scroll down past the description field to find Advanced settings.
+
+---
+
+### 2.3 Add the Instructions
+
+Click the **Instructions** tab and paste:
+
+```
+You handle payment collection once a user has selected a postpaid plan.
+
+When you receive a plan name and its monthly rental amount in AED:
+
+1. Call create_payment_link with the plan_name and rental_aed.
+2. If status is CREATED, respond with only the payment_url as a markdown hyperlink with clear link text — no greeting, no confirmation phrase, no introductory sentence of your own. The master agent adds its own framing before relaying your response, so your entire response should be just the link itself. The URL itself is a long opaque token — it may contain many characters after a "#" symbol that look like random text or encoded data. This is normal and expected. You must copy the entire payment_url exactly as returned by the tool, character for character, with nothing shortened, summarized, truncated, "cleaned up," or rewritten. Never drop, trim, or simplify any part of it, including everything after the "#".
+
+   Format it like this, where [the actual payment_url value returned by the tool] is replaced with the real, complete URL:
+   [Click here to pay for Smart 150]([the actual payment_url value returned by the tool])
+3. If status is FAILED, tell the user clearly that the payment link could not be created and share the reason. Do not retry silently — ask the user if they'd like to try again.
+
+Never ask the user for card details directly. Payment is always completed on Stripe's hosted checkout page via the link you provide.
+
+Never paste the raw URL as plain visible text outside the markdown link syntax — but the URL inside the parentheses of the markdown link must always be the complete, unmodified payment_url value. A shortened, truncated, or partially reproduced URL will not work and will break the payment flow.
+```
+
+---
+
+### 2.4 Setup — Import the Payment Tool
+
+This step is done outside the browser in VS Code and a terminal.
+
+---
+
+#### Step 1 — Open your IDE
+
+Open **VS Code** and go into your existing `etisalat-bootcamp` folder (already created in [Part 1, Section 1.7](#17-set-up-your-ide-and-adk-environment)).
+
+> Your ADK environment is already set up and activated — no need to repeat those steps.
+
+---
+
+#### Step 2 — Create the tool file
+
+```
+File → New File → name it: create_payment_link.py
+```
+
+Paste this code:
+
+```python
+from ibm_watsonx_orchestrate.agent_builder.tools import tool
+from pydantic import BaseModel, Field
+import stripe
+
+stripe.api_key = "sk_test_51Tls7GRriMoAjNdV3T7efWnrIBRQLDuGUEcfXk4oJHQhVAVxjpMv8FDstHZ0qHonFTmqjI9bT5OJ8pwmbnfRmgEj00iPaeMGpY"
+
+SUCCESS_URL = "https://6a424363170ac12c6c5a9eab--spontaneous-torrone-aa8529.netlify.app/"
+CANCEL_URL = "https://6a3bf7055d04772eedef4cc0--animated-entremet-8a202b.netlify.app/"
+
+
+class PaymentLinkResult(BaseModel):
+    status: str = Field(description="CREATED or FAILED")
+    payment_url: str = Field(description="Stripe Checkout URL the user opens to pay, empty if creation failed")
+    session_id: str = Field(description="Stripe Checkout Session ID, empty if creation failed")
+    reason: str = Field(description="Explanation of the result")
+
+
+@tool(
+    name="create_payment_link_<your_last_name>",
+    description="""Creates a Stripe Checkout payment link (test mode) for
+    a selected postpaid plan's monthly rental amount.
+
+    Use this tool once the user has chosen a specific plan tier from the
+    eligible options. It creates a Stripe-hosted Checkout Session for
+    that plan's rental amount and returns a payment URL.
+
+    The user must open the returned payment_url in a browser to complete
+    payment on Stripe's hosted page using a test card (e.g.
+    4242 4242 4242 4242, any future expiry, any CVC). No real charge is
+    made — this runs in Stripe test mode.
+
+    Returns status (CREATED or FAILED), the payment_url, the Stripe
+    session_id, and a reason."""
+)
+def create_payment_link(
+    plan_name: str,
+    rental_aed: float
+) -> PaymentLinkResult:
+    """
+    Creates a Stripe Checkout Session (test mode) for the selected
+    postpaid plan's monthly rental amount.
+
+    Args:
+        plan_name (str): Name of the selected plan, e.g. "Smart 150"
+        rental_aed (float): Monthly rental amount in AED, e.g. 150
+
+    Returns:
+        PaymentLinkResult: status, payment_url, session_id, and reason
+    """
+
+    # ── Basic input validation — exits immediately ──
+    if not plan_name or not plan_name.strip():
+        return PaymentLinkResult(
+            status="FAILED",
+            payment_url="",
+            session_id="",
+            reason="Plan name is required to create a payment link."
+        )
+
+    if rental_aed is None or rental_aed <= 0:
+        return PaymentLinkResult(
+            status="FAILED",
+            payment_url="",
+            session_id="",
+            reason="Rental amount must be a positive number."
+        )
+
+    # ── Create the Stripe Checkout Session ──
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "aed",
+                        "product_data": {
+                            "name": plan_name + " — Monthly rental"
+                        },
+                        "unit_amount": int(round(rental_aed * 100)),
+                    },
+                    "quantity": 1,
+                }
+            ],
+            success_url=SUCCESS_URL,
+            cancel_url=CANCEL_URL,
+        )
+    except Exception as e:
+        return PaymentLinkResult(
+            status="FAILED",
+            payment_url="",
+            session_id="",
+            reason="Stripe checkout session could not be created: " + str(e)
+        )
+
+    return PaymentLinkResult(
+        status="CREATED",
+        payment_url=session.url,
+        session_id=session.id,
+        reason="Checkout session created for " + plan_name + " at " + str(rental_aed) + " AED/month."
+    )
+```
+
+> ⚠️ Go to **line 19** in the code and replace `<your_last_name>` with your last name.
+> **Example:** `name="create_payment_link_ahmed"`
+
+<img width="994" height="682" alt="image" src="https://github.com/user-attachments/assets/bae12088-6fee-494d-933d-cf97f52ff8c5" />
+
+Then save the file (`Ctrl+S` / `Cmd+S`).
+
+---
+
+#### Step 3 — Create the requirements file
+
+```
+File → New File → name it: requirements.txt
+```
+
+Paste and save:
+
+```
+stripe>=11.0.0
+ibm-watsonx-orchestrate==2.5.1
+```
+
+Your folder should now look like:
+
+```
+etisalat-bootcamp/
+├── create_payment_link.py
+└── requirements.txt
+```
+
+---
+
+#### Step 4 — Import the tool
+
+```bash
+orchestrate tools import --kind python -r requirements.txt -f create_payment_link.py
+```
+
+Verify the tool was imported — go to your browser:
+
+```
+☰ Hamburger menu → Build → All Tools → create_payment_link_<your_last_name>
+```
+
+If `create_payment_link_<your_last_name>` appears in the list, the tool is ready. ✅
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/ce277f5e-b9f7-47a7-b33e-46fd4f513206" />
+
+---
+
+### 2.5 Add the Tool in the UI
+
+```
+☰ Hamburger menu → Build → All Agents → payment_agent_<your_last_name>
+```
+
+Click the **Toolset** tab on the left side menu → **Add tool** → **Local instance** → select `create_payment_link_<your_last_name>` → **Add**.
+
+---
+
+## Part 3 — Build the Master Agent
+
+### 3.1 Create the Agent
+
+```
+☰ Hamburger menu → Build → Create Agent → From scratch
+```
+
+| Field | Value |
+|---|---|
+| Name | `Postpaid Eligibility Agent_<your_last_name> (eg: Postpaid_Eligibility_Agent_ahmed)`|
+| Description | Helps users check eligibility for postpaid plans and complete sign-up. Collects Emirates ID and payslip, verifies identity and income requirements, recommends eligible plan tiers, and processes payment for the plan the user selects. |
+
+---
+
+### 3.2 Add the Instructions
+
+Click the **Instructions** tab and paste:
+
+```
+You are the Postpaid Plan Eligibility assistant.
+You are the only agent that communicates with the user.
+You manage the full postpaid eligibility and sign-up flow step by step.
+
+PHASE 0 — Kickoff:
+Call document_agent immediately at the very start of every conversation, with no greeting or message of your own first. document_agent owns the document upload, extraction, eligibility checking, and knowledge base plan lookup entirely through its own workflow and behavior.
+
+PHASE 1 — Document extraction and eligibility check:
+  - Triggered immediately and automatically at the very start of the conversation. Do not send any message of your own first, and do not wait for any input before calling document_agent.
+  - Call document_agent immediately. document_agent will handle asking the user to upload their Emirates ID and payslip, run its own extraction workflow, check eligibility, and — if eligible — retrieve matching plans from its knowledge base.
+  - Wait for document_agent to return its full result. Do not interject, ask your own questions, or duplicate any upload prompts while document_agent is handling this phase.
+  - As soon as document_agent returns a result, proceed immediately to Phase 2 in the same turn — do not pause and do not wait for any additional input.
+  - If document_agent returns INCOMPLETE or fails to extract a required field, relay that back to the user clearly so they know what to re-upload. Do not proceed to Phase 2 until extraction succeeds.
+
+PHASE 2 — Deliver result:
+  Once you receive the result from document_agent:
+
+  If the result is a decline:
+    - Clearly explain the decline reason to the user in plain language.
+    - Do not proceed further. Do not call payment_agent. Do not ask the user to pick a plan.
+
+  If the result is a list of eligible tiers:
+    - Present every eligible tier as a markdown table with columns: Plan, Monthly Rental (AED), Credit Limit (AED).
+    - Beneath the table, add one short recommendation line suggesting the highest eligible tier as the best value (e.g. "Based on your eligibility, [highest plan name] offers the most data and the highest credit limit for your budget."). This is a suggestion only — it must not replace or skip showing the full table of all eligible tiers above it.
+    - Ask the user which plan they would like to proceed with.
+    - Never pre-select, assume, or recommend only the highest tier as if it were the only option — all eligible tiers must be shown.
+    - Wait for the user to name one specific plan before proceeding. If their answer doesn't clearly match one of the listed plans, ask them to choose again from the listed options.
+
+PHASE 3 — Plan confirmation:
+  - Once the user names one specific eligible plan, do NOT call payment_agent yet. First present a confirmation summary of that plan, in this format:
+
+    "Here is the plan you've selected:
+    - Plan: [plan name]
+    - Monthly Rental: [rental amount] AED
+    - Credit Limit: [credit limit] AED
+
+    Kindly type "Confirm" to proceed with payment."
+
+  - Wait for the user to type "confirm" (accept reasonable case variations, e.g. "Confirm", "confirm", "CONFIRM"). Do not call payment_agent until the user has typed it.
+  - If the user wants to switch to a different eligible plan instead of confirming, update the selection and show the confirmation summary again for the newly chosen plan. Always re-confirm before proceeding.
+  - As soon as the user types "confirm", proceed directly and immediately to Phase 4 in the same turn. Do not pause, do not ask any further questions, and do not wait for any additional user input before calling payment_agent.
+
+PHASE 4 — Payment:
+  - Triggered immediately and automatically the moment the user types "confirm" in Phase 3. Do not wait for any other input.
+  - Call payment_agent immediately. Pass the plan details as a single labeled string in this exact format:
+
+    "Plan: [plan name]
+    Monthly Rental: [monthly rental amount] AED"
+
+    Example:
+
+    "Plan: Smart 150
+    Monthly Rental: 150 AED"
+
+  - Use the exact plan name and exact rental amount as returned by document_agent. Never invent, round, or alter the rental amount. Never include the credit limit in this string — only the plan name and the monthly rental amount with the AED unit.
+  - Once payment_agent responds, if status is CREATED, begin your message with exactly this line: "Thank you, please proceed with the payment using the following link:" — then on the next line, output payment_agent's response exactly as-is, with no changes whatsoever. Do not summarize it, do not rephrase it, do not regenerate the link, and do not add your own wording around it beyond the exact opening line specified above.
+  - CRITICAL: Treat payment_agent's entire response as an opaque block of text that you copy, not text that you read, understand, or reason about. Do not attempt to parse, interpret, decode, or analyze the URL inside it. Do not try to determine what the URL "means" or whether it "looks complete." Your only job with this block of text is character-for-character copying — never regeneration. If you find yourself reasoning step by step about the structure or content of the URL, stop that reasoning immediately and instead copy the original text directly. The correct process is: take payment_agent's response, copy it, paste it into your reply unchanged. Do not retype it from memory, do not summarize it and then expand it back out, do not describe it and then reconstruct it. Treat it the same way you would treat copying a block of text without reading it.
+  - Never ask the user "would you like me to generate a payment link" or any similar confirmatory question before calling payment_agent. Once the user has typed "confirm" in Phase 3, proceed directly to generating and presenting the payment link — do not ask again.
+  - The URL inside the payment link is long and may look unfamiliar or repetitive after a "#" character. This is normal, expected, and not a display error to fix. You must never insert an ellipsis ("...", "…"), never insert any "and so on" style abbreviation, never insert any invisible or zero-width characters, and never substitute any portion of the real URL with a shorter placeholder, a made-up fragment, or anything that merely resembles the original pattern. The URL must be reproduced as one single unbroken sequence of the exact characters payment_agent provided, with nothing added, nothing removed, and nothing replaced — including inside the part of the URL after the "#" symbol. A URL that is shorter than what payment_agent returned is always wrong, with no exceptions.
+  - If the user changes their mind after receiving a payment link and names a different eligible plan instead, treat this as a new selection: return to Phase 3 and present the exact confirmation summary template again for the newly chosen plan (do not phrase this as a casual question like "would you like me to generate a new link"). Wait for a fresh "confirm" from the user, then repeat Phase 4 and call payment_agent again. Do not refer back to the previous link.
+
+FORMATTING:
+Always format your messages clearly and readably. When presenting eligible plans, list them as bullet points, not as a single paragraph. Use line breaks generously so the message is easy to scan rather than a wall of text.
+
+Rules you must always follow:
+- Never skip Phase 0. Always call document_agent immediately at the very start of the conversation, with no message of your own first.
+- Never ask the user to upload documents yourself, list document requirements, or duplicate document_agent's upload workflow — document_agent owns that conversation entirely, including eligibility checks and plan lookup.
+- Never call payment_agent before the user has explicitly named one specific plan from the eligible list AND typed "confirm" in Phase 3. Both steps are required, in that order.
+- Never call payment_agent if document_agent returned a decline.
+- Never present only one eligible tier if document_agent returned more than one — always show the full list.
+- Always pass plan details to payment_agent as a labeled string in the exact format "Plan: [plan name]" followed by "Monthly Rental: [monthly rental amount] AED" on the next line — for example "Plan: Smart 150 / Monthly Rental: 150 AED". Never pass them as a single unlabeled comma-separated value, a sentence, or any other format.
+- Once payment_agent responds, output its response unchanged as your message to the user — no summarizing, rephrasing, or regenerating any part of it, including the link. Treat payment_agent's output as an opaque block to copy, never as text to read and retype from understanding. A reproduced URL that is shorter than, different from, or only resembles the original is always a failure, with no exceptions.
+- Never narrate or list data being passed between agents.
+- Never make up or assume any information not provided by the user or returned by an agent.
+- Never perform document extraction, eligibility checks, or payment creation yourself — always delegate to the relevant specialist agent.
+- Always be polite and professional throughout.
+
+MANDATORY:
+- Always use the complete raw payment link provided by payment_agent VERBATIM, character for character, with zero substitutions anywhere in the string — including inside the encoded portion after the "#" symbol. Even a single character changed, added, or dropped makes the link non-functional, so there is no acceptable margin of error when reproducing it.
+```
+
+---
+
+### 3.3 Verify Agent Style
+
+Scroll down on the agent page → click **Advanced settings** → confirm **Style** is set to `React Core`. If not, click the dropdown and select it.
+
+> The **Description** and **Style** must be set before adding instructions. Scroll down past the description field to find Advanced settings.
+
+---
+
+### 3.4 Welcome Message & Quick Start Prompts
+
+The Welcome message and Quick start prompts are configured through the **Deploy** menu, not the agent edit page directly.
+
+1. Click **Deploy** in the top menu
+2. Click **Draft**
+3. Under **Orchestrate chat**, toggle it **on** if it is off
+4. Click **Edit**
+5. In the **Welcome message** field, paste:
+
+```
+Hi, Welcome to e& Plan Eligibility Agent
+```
+
+6. Under **Quick start prompts**, delete all existing questions (click **X** on each) → click **+** and add:
+
+```
+Check my postpaid plan eligibility
+```
+
+<img width="1408" height="797" alt="image" src="https://github.com/user-attachments/assets/53c66ee0-5b6d-4e9a-a022-ec653fe46efa" />
+<img width="840" height="726" alt="image" src="https://github.com/user-attachments/assets/0c80ca74-fe98-4f6b-bf6a-583352ddaec6" />
+
+> Screenshots for the Deploy → Draft → Orchestrate chat flow will be added.
+
+---
+
+### 3.5 Add Sub-Agents
+
+Go to the **Agent** tab on the top menu → Click **Add agents** → **Local instance** → select:
+
+- `document_agent_<your_last_name>`
+- `payment_agent_<your_last_name>`
+
+Click **Add**.
+
+---
+
+## Part 4 — Full Pipeline Test
+
+On the Master Agent page, click the **refresh button** on the top left of the agent chat panel on the right side → click the quick start prompt:
+
+```
+Check my postpaid plan eligibility
+```
+<img width="849" height="778" alt="image" src="https://github.com/user-attachments/assets/ca2516ef-fc9c-4fb3-9bba-119c849838d7" />
+
+> Using training documents: `EID_Train.png` + `Payslip_Train.png`
+
+**Expected conversation flow:**
+
+```
+Agent : [Immediately calls document_agent without greeting]
+
+        [Upload prompt: Emirates ID]
+User  : EID_Train.png
+
+        [Upload prompt: Payslip]
+User  : Payslip_Train.png
+
+Agent : [Document extraction and eligibility check happens]
+        [Review document extraction → Submitted]
+
+Agent : [Presents eligible plans in a table]
+        
+        | Plan | Monthly Rental (AED) | Credit Limit (AED) |
+        |---|---|---|
+        | Smart 55 | 55 | 500 |
+        | Smart 150 | 150 | 1200 |
+        
+        Based on your eligibility, Smart 150 offers the most data and the highest credit limit for your budget.
+        
+        Which plan would you like to proceed with?
+
+User  : Smart 150
+
+Agent : Here is the plan you've selected:
+        - Plan: Smart 150
+        - Monthly Rental: 150 AED
+        - Credit Limit: 1200 AED
+        
+        Kindly type "Confirm" to proceed with payment.
+
+User  : confirm
+
+Agent : Thank you, please proceed with the payment using the following link:
+        [Click here to pay for Smart 150](https://checkout.stripe.com/c/pay/cs_test_...)
+```
+
+---
+
+## Part 5 — Test Scenarios
+
+When the Master Agent asks you to upload your documents, upload the relevant Emirates ID and payslip for each scenario below.
+
+---
+
+### Scenario 1 — Test PASS (Eligible for multiple tiers) ✅
+
+Upload when prompted:
+
+| | |
+|---|---|
+| Emirates ID | [EID_Pass.png](documents/Pass%20Test/EID_Pass.png) |
+| Payslip | [Payslip_Pass.png](documents/Pass%20Test/Payslip_Pass.png) |
+| **Expected** | **PASS — Multiple eligible tiers presented** |
+
+The system should:
+1. Extract data successfully
+2. Pass all eligibility checks (name match, ID validity, salary ≥ 4000)
+3. Present eligible plan tiers based on salary
+4. Allow user to select a plan
+5. Generate Stripe payment link
+
+---
+
+### Scenario 2 — Test FAIL (Eligibility rejection) ❌
+
+Upload when prompted:
+
+| | |
+|---|---|
+| Emirates ID | [EID_Fail.png](documents/Fail%20Test/EID_Fail.png) |
+| Payslip | [Payslip_Fail.png](documents/Fail%20Test/Payslip_Fail.png) |
+| **Expected** | **FAIL — Rejection with reason** |
+
+The system should:
+1. Extract data successfully
+2. Fail one or more eligibility checks (name mismatch, expired ID, or salary < 4000)
+3. Present clear rejection reason
+4. NOT proceed to plan selection or payment
+
+---
+
+### Scenario 3 — Test Payment Flow (Complete end-to-end) 💳
+
+Use the PASS scenario documents and complete the full flow:
+
+1. Upload documents
+2. Review eligible plans
+3. Select a plan (e.g., "Smart 150")
+4. Confirm selection
+5. Receive Stripe payment link
+6. Click the link to open Stripe Checkout
+7. Use the test card details below — these exact values can be used as-is, no need to look up or invent your own:
+
+   > **Test Card Details**
+   >
+   > | Field | Value |
+   > |---|---|
+   > | Card number | `4242 4242 4242 4242` |
+   > | Expiry date | `12/30` |
+   > | CVV | `123` |
+8. Complete test payment
+
+**Expected:** Payment succeeds and redirects to success page.
+
+---
+
+## 🎉 Congratulations!
+
+You have successfully built and tested a fully functional 3-agent Postpaid Plan Eligibility pipeline on IBM watsonx Orchestrate — powered by document extraction, eligibility validation, knowledge base plan lookup, and Stripe payment integration.
+
+### What You Built
+
+- **document_agent**: Agentic workflow with Emirates ID and payslip extraction, eligibility validation script, and knowledge base integration
+- **payment_agent**: ADK Python tool with Stripe test mode integration
+- **Master agent**: React Core orchestrator managing the full user journey
+- **Knowledge base**: Milvus-backed plan catalog with salary-based eligibility
+
+### Key Concepts Covered
+
+- Multi-agent orchestration with React Core style
+- Agentic workflows with document extraction nodes
+- Python script nodes for business logic
+- Knowledge base integration for dynamic data retrieval
+- ADK tool development with external API integration (Stripe)
+- Agent collaboration patterns
+- Test mode payment processing
