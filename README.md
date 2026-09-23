@@ -152,7 +152,7 @@ If all checks pass, the system retrieves eligible plan tiers from the knowledge 
 Before starting, make sure you have:
 
 - **Python 3.11** installed on your machine
-- **Bob IDE** — [Download here](https://bob.ibm.com/download) — sign up using your work email.
+- **Bob IDE** — [Download here](https://bob.ibm.com/download) — sign up and login using your work email.
 - **IBM Cloud invitation email** — you should have received this before the session. If not, Check with your instructor before proceeding.
 
 ---
