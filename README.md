@@ -189,6 +189,7 @@ Once you are logged in to IBM Cloud:
 
 
 This opens your watsonx Orchestrate environment — this is where you will build everything in this lab.
+<img width="3398" height="1832" alt="image" src="https://github.com/user-attachments/assets/b5e089e5-d53d-4d91-83f2-91e106833eaa" />
 
 ---
 
@@ -266,9 +267,10 @@ Import both, then prove it: create a link for "Smart 150" at 150 AED and confirm
 After sending the prompt, Bob will guide you through a series of approval steps:
 
 9. For the purpose of this demo, approve any request Bob presents
-   <!-- TODO: screenshot -->
+   <img width="702" height="154" alt="Screenshot 2026-09-23 093950" src="https://github.com/user-attachments/assets/53dd236a-a56a-490c-bc46-f960054dda90" />
 10. When prompted to approve command execution — scroll down, select **"I understand the risk"** at the bottom right, then click **Approve**
-   <!-- TODO: screenshot -->
+   <img width="756" height="583" alt="Screenshot 2026-09-23 094620" src="https://github.com/user-attachments/assets/7d219b43-202c-4738-afea-f6f49e33f292" />
+
 
 > ⚠️ **Demo environment only.** Selecting "I understand the risk" grants Bob permission to execute terminal commands. This is safe in this controlled lab environment — you are explicitly approving this action as part of the demo setup.
 
@@ -582,7 +584,8 @@ Click on the **File Upload** component to open it.
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/2ebabfe8-a5f4-4c81-ae90-9f6dea867921" />
 
 To add the Payslip node, hover over the arrow connecting the **Emirates ID** component and the **"end"** word — click the **+** icon that appears in the middle of the arrow → select **Collect from user → Upload file** → label it `Payslip`
-<!-- TODO: screenshot -->
+<img width="533" height="541" alt="Screenshot 2026-09-23 100009" src="https://github.com/user-attachments/assets/b328cfcb-6d00-431c-9ae4-8a85613e1aa9" />
+
 
 It should now look like this with two upload nodes:
 
@@ -818,7 +821,7 @@ self.output.reason = reason
 Click **+** between **Node 5 (Eligibility Check component)** and the **output component (grey square)** → select **Add a flow activity → Generative prompt**
 
 Click on the node to open its configuration panel, then click the **pencil icon** beside the prompt settings.
-<!-- TODO: screenshot -->
+<img width="614" height="502" alt="Screenshot 2026-09-23 104859" src="https://github.com/user-attachments/assets/d580d465-9068-4fa1-8ee1-e8a95c1511a4" />
 
 <img width="880" alt="image" src="https://github.com/user-attachments/assets/636afa32-e1e6-4b40-a1b3-02dc64455451" />
 
