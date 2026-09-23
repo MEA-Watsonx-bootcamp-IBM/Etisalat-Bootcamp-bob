@@ -265,11 +265,9 @@ Import both, then prove it: create a link for "Smart 150" at 150 AED and confirm
 
 After sending the prompt, Bob will guide you through a series of approval steps:
 
-9. Review the plan Bob presents — click **Todo tools for task** to approve
+9. For the purpose of this demo, approve any request Bob presents
    <!-- TODO: screenshot -->
-10. For the purpose of this demo, click **Approve for task** for each subsequent approval request Bob presents
-   <!-- TODO: screenshot -->
-11. When prompted to approve command execution — scroll down, select **"I understand the risk"** at the bottom right, then click **Approve**
+10. When prompted to approve command execution — scroll down, select **"I understand the risk"** at the bottom right, then click **Approve**
    <!-- TODO: screenshot -->
 
 > ⚠️ **Demo environment only.** Selecting "I understand the risk" grants Bob permission to execute terminal commands. This is safe in this controlled lab environment — you are explicitly approving this action as part of the demo setup.
