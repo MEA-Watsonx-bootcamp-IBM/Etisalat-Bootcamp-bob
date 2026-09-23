@@ -192,26 +192,24 @@ This opens your watsonx Orchestrate environment — this is where you will build
 
 ---
 
-### Step 3 — Save Your Credentials
+### Step 3 — Save Your API Key
 
-You will need these two values throughout the lab. Follow these steps to retrieve them from your environment.
+You will need your API key throughout the lab. Follow these steps to retrieve it from your environment.
 
 1. Click your **Profile icon** (top-right corner)
 2. Click **Settings** → **API details** tab
-3. Copy the **Service instance URL** shown on the page and save it
-4. Click **Generate API key**
-5. Click **Create**
+3. Click **Generate API key**
+4. Click **Create**
 
    <img width="1311" height="748" alt="image" src="https://github.com/user-attachments/assets/bd953873-acec-4c4f-8fac-c9c45a09c3b9" />
 
-6. Enter your **name** in the name field — leave all other fields as they are
-7. Click the button in the bottom-right corner — copy and save the generated API key
+5. Enter your **name** in the name field — leave all other fields as they are
+6. Click the button in the bottom-right corner — copy and save the generated API key
 
-> ⚠️ Save both values — you will need them in [Step 3 — Install the ADK](#step-3--install-the-adk-and-activate-your-environment)
+> ⚠️ Save your API key — you will use it to activate your environment directly in Bob IDE.
 
 | Credential | Where to find it |
 |---|---|
-| Service instance URL | Settings → API details tab → Copy instance url at the bottom |
 | API key | Settings → API details tab → Generate API key → Create → enter name → copy |
 
 ---
@@ -235,25 +233,25 @@ Three sets of Emirates ID and payslip documents are provided. Each has a specifi
 
 ### 1.1 Create the Agent
 
-> ⚠️ Replace `<your_last_name>` with your last name before pasting the prompt in step 6. **Example:** `payment_agent_ahmed`, `create_payment_link_ahmed`
-
 In the watsonx Orchestrate UI:
 
 1. Click the **☰ hamburger menu** → under **Active Inventory**, click **Agents**
 2. Click **Create agent**
-4. Click **Build with Bob** — your browser will show a prompt asking to open an `ibm-bob://` link → click **Open Link**
+3. Click **Build with Bob** — your browser will show a prompt asking to open an `ibm-bob://` link → click **Open Link**
    <img width="3356" height="1850" alt="image" src="https://github.com/user-attachments/assets/65f547bc-ef4d-4d75-94d5-6964f5aa11f5" />
    <img width="3358" height="1854" alt="image" src="https://github.com/user-attachments/assets/2225211d-f44c-466b-9d2c-0a7fbbb43c08" />
-6. **Bob IDE opens** — inside Bob IDE a pop-up appears asking to install the **watsonx Orchestrate ADK** extension → click **Install Extension and Open URI**
+4. **Bob IDE opens** — inside Bob IDE a pop-up appears asking to install the **watsonx Orchestrate ADK** extension → click **Install Extension and Open URI**
    <img width="3354" height="1536" alt="image" src="https://github.com/user-attachments/assets/c25a76fa-2c71-46f0-b199-dd818977bf0e" />
    <img width="996" height="616" alt="image" src="https://github.com/user-attachments/assets/c01393d9-ae58-4069-9c41-5e35410ef06b" />
-8. Bob IDE then prompts for your API key for the environment — enter it and press **Enter**
+5. Bob IDE prompts you to select a folder to open — create or select a folder on your machine. After activating the API key, Bob switches to the main Orchestrate workspace folder automatically.
+6. Bob IDE then prompts for your API key for the environment — enter it and press **Enter**
    <img width="1292" height="350" alt="image" src="https://github.com/user-attachments/assets/6ff599b6-44b3-44c2-bdec-dc59fb794365" />
-9. Once the Environment is connected, you should be able to see the workspace in the IDE
-    <img width="3338" height="1864" alt="image" src="https://github.com/user-attachments/assets/665a537e-7f68-419f-bc3e-e59b37b53465" />
-10. A new task opens in Bob IDE — paste the following prompt:
-    <img width="652" height="884" alt="image" src="https://github.com/user-attachments/assets/eb2ae48b-927b-49e2-a4ed-a47ee57c7c5c" />
+7. Once the environment is connected, you should be able to see the workspace in Bob IDE
+   <img width="3338" height="1864" alt="image" src="https://github.com/user-attachments/assets/665a537e-7f68-419f-bc3e-e59b37b53465" />
+8. A new task opens in Bob IDE — paste the following prompt:
+   <img width="652" height="884" alt="image" src="https://github.com/user-attachments/assets/eb2ae48b-927b-49e2-a4ed-a47ee57c7c5c" />
 
+> ⚠️ Replace `<your_last_name>` in the prompt below with your last name before pasting. **Example:** `create_payment_link_ahmed`, `payment_agent_ahmed`
 
 ```
 Create the payment agent for the postpaid eligibility lab on watsonx Orchestrate: a Python tool create_payment_link_<your_last_name>(plan_name, subscription_aed) and a native agent payment_agent_<your_last_name> that uses it (model groq/openai/gpt-oss-120b).
@@ -265,12 +263,22 @@ The agent, given a plan name and monthly subscription, calls the tool once and r
 Import both, then prove it: create a link for "Smart 150" at 150 AED and confirm through the Stripe API that it is active for 15000 fils in AED. Show me the tool output and the Stripe confirmation.
 ```
 
+After sending the prompt, Bob will guide you through a series of approval steps:
+
+9. Review the plan Bob presents — click **Todo tools for task** to approve
+   <!-- TODO: screenshot -->
+10. For the purpose of this demo, click **Approve for task** for each subsequent approval request Bob presents
+   <!-- TODO: screenshot -->
+11. When prompted to approve command execution — scroll down, select **"I understand the risk"** at the bottom right, then click **Approve**
+   <!-- TODO: screenshot -->
+
+> ⚠️ **Demo environment only.** Selecting "I understand the risk" grants Bob permission to execute terminal commands. This is safe in this controlled lab environment — you are explicitly approving this action as part of the demo setup.
+
 ---
 
 ## Part 2 — Build Sub-Agent 2: Document Agent
 
-> **Accessing your environment:**
-> Open the watsonx Orchestrate instance URL from your welcome email, log in, and you will land on the home page.
+> 🔙 Go back to the watsonx Orchestrate browser page you had open previously before continuing with the steps below.
 
 ---
 
@@ -368,429 +376,7 @@ Scroll down on the agent page → click **Advanced settings** → confirm **Styl
 
 ---
 
-### 2.4 Create the Agentic Workflow
-
-In the top menu, click **Add tool** → Select **Agentic Workflow**.
-
-<img width="1332" height="706" alt="image" src="https://github.com/user-attachments/assets/f73dc1ba-c4bc-428e-9ed4-790de975eaf2" />
-<img width="891" height="728" alt="image" src="https://github.com/user-attachments/assets/e032c9d3-c052-4923-ae3b-a84beb8687ec" />
-
-When prompted, enter a name for the workflow:
-
-```
-document_extract_tool_<your_last_name>
-```
-
-> ⚠️ Replace `<your_last_name>` with your last name. **Example:** `document_extract_tool_ahmed`
-
-Click **start building**. This opens the workflow canvas.
-
-> **How to add nodes:**
-> Hover over the arrow between two nodes → click the **+** button that appears → select the node type from the menu.
-
----
-
-### 2.5 Build the Workflow
-
-#### Node 1 & 2 — Collect from User (File Upload)
-
-Click **+** on the arrow between START and END → select **Collect from user → Upload file**
-
-<img width="1317" height="713" alt="image" src="https://github.com/user-attachments/assets/5369bbce-0902-4928-844e-d4a3a05a8b04" />
-
-> **Rename:** Click the **pencil icon** (top-left of node) → type `Emirates ID`
-
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/2ebabfe8-a5f4-4c81-ae90-9f6dea867921" />
-
-Similarly add 1 more node after the previous node by clicking **+**, Label it `Payslip`
-
-It should now look like this with two upload nodes:
-
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/a80414d0-52e0-46fc-9908-2682d8e5fdef" />
-
-
-| Label |
-|---|
-| `Emirates ID` |
-| `Payslip` |
-
-> There are no variable names here — just the label. The workflow waits until both files are uploaded before continuing.
-
----
-
-#### Node 3 — Document Extractor (Emirates ID)
-
-Click **+** on the arrow between Node 1 and END → select **Add a flow activity → Document extractor**
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/9d1b65a2-f901-4a38-8237-7d85b498fcf0" />
-
-Click on the node to open its configuration panel.
-
-When prompted, select document type: `Unstructured`
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/0da8020e-9f02-4e87-8f4e-4d55a770db59" />
-
-> **Rename:** Click the **pencil icon** (top-left of node) → type `Extract emirates ID fields`
->
-> **Change model:** Click the model selector (top-right of node) → select `gpt-oss-120b`
-
-Drag and drop the training Emirates ID file `EID_Train.png` into the document upload area of the node.
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/fdd034e8-2002-4160-a3d2-d425dcdc272c" />
-
-> This is the training document.
-
-Click **Add field** and add the fields in the table below.
-For each field, click the **⋮ three-dot menu** → **Edit** to set its type and description.
-<img width="1293" height="764" alt="image" src="https://github.com/user-attachments/assets/ba77d92b-a06c-40e1-ab9b-192d965206ae" />
-<img width="1324" height="780" alt="image" src="https://github.com/user-attachments/assets/fbca5b57-0558-4a80-afe4-b1d2d31119ea" />
-
-| Field name | Type | Description |
-|---|---|---|
-| `ID Number` | string | Extract the Emirates ID number exactly as shown on the card, usually in the format 784-XXXX-XXXXXXX-X. |
-| `Full Name` | string | Extract the card holder's full name exactly as written in English on the Emirates ID. |
-| `Date of Birth` | date | Extract the card holder's date of birth exactly as shown on the Emirates ID. Return in YYYY-MM-DD format if possible. |
-| `Nationality` | string | Extract the card holder's nationality from the Emirates ID. Look for the label "Nationality" or "الجنسية". Return only the nationality value, not the label. The value may be a country name such as United Arab Emirates, Saudi Arabia, India, Pakistan, Egypt, Philippines, Jordan, Syria, or another nationality. If both English and Arabic are shown, return the English nationality. |
-| `Expiry Date` | date | Extract the expiry date of the Emirates ID exactly as shown on the card. This field will be used later for eligibility validation. |
-| `Date of Issue` | date | Extract the issue date of the Emirates ID exactly as shown on the card. |
-
-<details>
-<summary> <strong>💡 Optional — Map the document Source (click to expand) </strong> </summary>
-
-1. Click **X** (top-right of the panel) to close it
-2. Click the `Extract emirates ID fields` node again to reopen it
-3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
-4. Click **`{x}`** on the `document_ref` field
-5. Under **User activity 1**, select `Emirates ID`
-6. On the right side, select `value`
-
-</details>
-
----
-
-#### Node 4 — Document Extractor (Payslip)
-
-Click **+** between Node 2 and END → select **Add a flow activity → Document extractor**
-
-Click on the node to open its configuration panel.
-
-Select document type: `Unstructured`
-
-> **Rename:** `Extract payslip fields`
->
-> **Change model:** `gpt-oss-120b`
-
-Drag and drop the training payslip file `Payslip_Train.png` into the document upload area of the node.
-
-> This is the training document. You will swap it during test scenarios.
-
-Click **Add field** and add the fields in the table below.
-For each field, click the **⋮ three-dot menu** → **Edit** to set its type and description.
-
-| Field name | Type | Description |
-|---|---|---|
-| `Employee Name` | string | Extract the employee's full name exactly as written in the payslip, usually found next to the label "Employee Name" or "Name" |
-| `gross salary` | string | Extract the gross salary amount from the payslip exactly as shown next to "Gross Salary". Return only the numeric value without currency symbols or commas. specifically look at the gross salary section|
-
-<details>
-<summary> <strong>💡 Optional — Map the document Source (click to expand) </strong> </summary>
-
-1. Click **X** (top-right of the panel) to close it
-2. Click the `Extract payslip fields` node again to reopen it
-3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
-4. Click **`{x}`** on the `document_ref` field
-5. Under **User activity 1**, select `Payslip`
-6. On the right side, select `value`
-
-</details>
-
----
-
-#### Node 5 — Logic Block (Eligibility Check)
-
-Click **+** between Node 4 and END → select **Add a flow activity → Logic block**
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/1b288b54-ba99-4f07-aded-b18dc4f78677" />
-
-Click on the node to open its configuration panel.
-
-> **Rename:** `Eligibility Check`
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/d9eb3f04-36c2-4eb6-b923-813d2f039c1b" />
-
-**Logic block code** — paste this Python code:
-
-<img width="808" alt="image" src="https://github.com/user-attachments/assets/9ee3b9f8-15f6-4b49-92eb-cb858fd5fe61" />
-
-```python
-# ---- Pull extracted fields from the two upstream document extractor nodes ----
-id_fields = parent["Extract emirates ID fields"].output
-payslip_fields = parent["Extract payslip fields"].output
-
-id_name_raw = id_fields.get("full_name", "")
-payslip_name_raw = payslip_fields.get("employee_name", "")
-expiry_str = id_fields.get("expiry_date", "")
-gross_salary = float(payslip_fields.get("gross_salary", 0))
-
-# ---- Check 1: Cross-name validation ----
-def normalize_name(name):
-    name = name.lower().strip()
-    name = re.sub(r"[^a-z\s]", "", name)
-    name = re.sub(r"\s+", " ", name)
-    return name
-
-id_name_norm = normalize_name(id_name_raw)
-payslip_name_norm = normalize_name(payslip_name_raw)
-
-id_tokens = set(id_name_norm.split())
-payslip_tokens = set(payslip_name_norm.split())
-
-if len(id_tokens) == 0 or len(payslip_tokens) == 0:
-    name_match = False
-elif id_tokens.issubset(payslip_tokens) or payslip_tokens.issubset(id_tokens):
-    name_match = True
-else:
-    common = id_tokens.intersection(payslip_tokens)
-    name_match = len(common) >= 2
-
-# ---- Check 2: Expiry date (fail if missing, expired, or expiring within 3 months) ----
-today = datetime.date.today()
-three_months_out = today + datetime.timedelta(days=90)
-
-expiry_str_clean = expiry_str.strip() if expiry_str else ""
-expiry_date = None
-
-if expiry_str_clean != "":
-    # ISO 8601 is the platform's native date format; others are fallbacks
-    # in case the extractor returns a differently formatted string.
-    date_formats = [
-        "%Y-%m-%d",    # ISO 8601 - native flow date format
-        "%d/%m/%Y",
-        "%d-%m-%Y",
-        "%m/%d/%Y",
-        "%d %B %Y",
-        "%d %b %Y",
-    ]
-    for fmt in date_formats:
-        try:
-            expiry_date = datetime.datetime.strptime(expiry_str_clean, fmt).date()
-            break
-        except ValueError:
-            continue
-
-if expiry_date is None:
-    id_valid = False
-elif expiry_date < today:
-    id_valid = False
-elif expiry_date <= three_months_out:
-    id_valid = False
-else:
-    id_valid = True
-
-# ---- Check 3: Salary threshold ----
-if gross_salary >= 4000:
-    salary_pass = True
-else:
-    salary_pass = False
-
-# ---- Overall result: ALL checks must pass ----
-if name_match and id_valid and salary_pass:
-    status = "PASS"
-    reason = "All checks passed"
-else:
-    if not name_match:
-        reason = "Name on Emirates ID does not match payslip"
-    elif not id_valid:
-        if expiry_str_clean == "":
-            reason = "Emirates ID expiry date missing or unreadable"
-        else:
-            reason = "Emirates ID expired or expiring within 3 months"
-    else:
-        reason = "Salary below 4000"
-    status = "FAIL"
-
-# ---- Outputs for downstream nodes ----
-self.output.status = status
-self.output.reason = reason
-```
-
-**Output schema** — click **Output variables** tab → **Add variable**:
-
-<img width="880" alt="image" src="https://github.com/user-attachments/assets/9fb2ebe8-0c42-4e50-81c3-d1bf34eccf55" />
-
-<img width="880" alt="image" src="https://github.com/user-attachments/assets/c6a217f9-0090-4d69-92f9-9369c058f138" />
-
-| Variable name | Type | Description |
-|---|---|---|
-| `status` | string | Final eligibility status (PASS or FAIL) |
-| `reason` | string | Reason for approval or rejection |
-
-
-
----
-
-#### Node 6 — Generative Prompt (Package Output)
-
-Click **+** between Node 5 and END → select **Add a flow activity → Generative prompt**
-
-Click on the node to open its configuration panel.
-
-<img width="880" alt="image" src="https://github.com/user-attachments/assets/636afa32-e1e6-4b40-a1b3-02dc64455451" />
-
-**Input variables** — click the **Input variables** tab → **Add variable**:
-
-<img width="1299" height="757" alt="image" src="https://github.com/user-attachments/assets/0d307030-ef2b-4798-8a4a-099017c13810" />
-
-| Variable name | Type |
-|---|---|
-| `full_name` | string |
-| `id_number` | string |
-| `expiry_date` | date |
-| `nationality` | string |
-| `gross_salary` | string |
-| `date_of_birth` | date |
-| `employee_name` | string |
-| `status` | string |
-| `reason` | string |
-
-**System Prompt:**
-
-```
-You are a data packaging assistant for telecom eligibility processing.
-Your only job is to combine extracted document data into a clean JSON object.
-You must return only valid JSON. No explanation, no commentary, no extra text.
-Never modify, correct, or interpret any field values.
-Always preserve the exact values as given to you.
-```
-
-**User Prompt:**
-
-```
-Combine the two documents into a single JSON object that has exactly three top‑level keys: **emirates_id**, **payslip**, and **eligibility**.
-
-**Emirates ID data** (replace the placeholders with the actual values):
-- ID Number: {self.input.id_number}
-- Full Name: {self.input.full_name}
-- Date of Birth: {self.input.date_of_birth}
-- Nationality: {self.input.nationality}
-- Expiry Date: {self.input.expiry_date}
-
-**Payslip data** (replace the placeholders with the actual values):
-- Employee Name: {self.input.employee_name}
-- Gross Salary: {self.input.gross_salary}
-
-**Eligibility data** (replace the placeholders with the actual values; if a value is not available, use an empty string `""`):
-- Status: {self.input.status}
-- Reason: {self.input.reason}
-
-**Return only** the following JSON structure—no extra text, no formatting, and no additional keys:
-
-{
-  "emirates_id": {self.input.
-    "id_number": "{self.input.id_number}",
-    "full_name": "{self.input.full_name}",
-    "date_of_birth": "{self.input.date_of_birth}",
-    "nationality": "{self.input.nationality}",
-    "expiry_date": "{self.input.expiry_date}"
-  },
-  "payslip": {self.input.
-    "employee_name": "{self.input.employee_name}",
-    "gross_salary": "{self.input.gross_salary}"
-  },
-  "eligibility": {self.input.
-    "status": "{self.input.status}",
-    "reason": "{self.input.reason}"
-  }
-}
-
-**RULE:**
-- **Always** output every field shown above (`id_number`, `full_name`, `date_of_birth`, `nationality`, `expiry_date`, `employee_name`, `gross_salary`, `status`, `reason`).
-- If a particular value is unknown or not provided, insert an empty string (`""`) for that field.
-- Do **not** omit any keys, do **not** add extra keys, and do **not** include any explanatory text or markdown formatting. The response must be a plain JSON object exactly as shown.
-```
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/e144b6a6-85a0-4008-9c25-ebde9b77c169" />
-
-**Data Mapping:**
-
-1. Click **X** (top-right of the panel) to close it
-2. Click the `Generative prompt` node again to reopen it
-3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
-
-For each input variable, click **`{x}`** and use the variable picker:
-
-| Input variable | Source component | Variable to select |
-|---|---|---|
-| `full_name` | Extract emirates ID fields | `full_name` |
-| `id_number` | Extract emirates ID fields | `id_number` |
-| `expiry_date` | Extract emirates ID fields | `expiry_date` |
-| `nationality` | Extract emirates ID fields | `nationality` |
-| `date_of_birth` | Extract emirates ID fields | `date_of_birth` |
-| `employee_name` | Extract payslip fields | `employee_name` |
-| `gross_salary` | Extract payslip fields | `gross_salary` |
-| `status` | Eligibility Check | `status` |
-| `reason` | Eligibility Check | `reason` |
-
----
-
-#### Final Canvas
-
-```
-START
-  │
-  ▼
-User activity 1  (Collect from user → Upload files: Emirates ID, Payslip)
-  │
-  ▼
-Extract emirates ID fields  (Document Extractor)
-  │
-  ▼
-Extract payslip fields  (Document Extractor)
-  │
-  ▼
-Eligibility Check  (Logic block)
-  │
-  ▼
-Generative prompt  (Package Output)
-  │
-  ▼
-END
-```
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/814df0b2-d282-419c-ace1-c80288818d4c" />
-
-#### Configure the Output Node
-
-After the workflow is created, configure the END node to expose the workflow output:
-
-1. Click the **END** node → click **Add** → click **Output**
-2. Select type **String**
-3. In the name field, type `value` and click **Apply**
-3. Close the panel, then click the **END** node again to reopen it
-4. At the bottom-right of the panel, click the **settings icon** (⚙)
-5. Click **`{x}`** next to `value`
-6. Under **Generative prompt**, select `value` (the blue text on the right side)
-
-<img width="1153" height="594" alt="image" src="https://github.com/user-attachments/assets/a401d60a-06e5-4311-b3d3-a76932e6bd5d" />
-<img width="1357" height="698" alt="image" src="https://github.com/user-attachments/assets/90eb6354-58f3-442a-912b-0170faa330ae" />
-
-
-#### Enable Agent Summarisation
-
-1. Click the **settings icon** (⚙) at the top of the canvas, next to the workflow name
-2. A panel opens on the right side — toggle **Agent summarisation** on
-
-<img width="1301" height="606" alt="image" src="https://github.com/user-attachments/assets/e3e4efe0-522d-4fb5-a7b8-916df89aa2cf" />
-
----
-
-### 2.6 Save and Exit
-
-Click **Done** (top-right) to return to the agent page.
-
----
-
-### 2.7 Import Knowledge Base Tool
+### 2.4 Import Knowledge Base Tool
 
 > 📌 This tool acts as the knowledge base for the agent — it connects directly to Milvus and retrieves the full postpaid plan catalogue deterministically, replacing a conversational knowledge base lookup.
 
@@ -960,6 +546,436 @@ Click the **Tool** tab → **Add tool** → **Local instance** → select `get_p
 
 ---
 
+
+### 2.5 Create the Agentic Workflow
+
+In the top menu, click **Add tool** → Select **Agentic Workflow**.
+
+<img width="1332" height="706" alt="image" src="https://github.com/user-attachments/assets/f73dc1ba-c4bc-428e-9ed4-790de975eaf2" />
+<img width="891" height="728" alt="image" src="https://github.com/user-attachments/assets/e032c9d3-c052-4923-ae3b-a84beb8687ec" />
+
+When prompted, enter a name for the workflow:
+
+```
+document_extract_tool_<your_last_name>
+```
+
+> ⚠️ Replace `<your_last_name>` with your last name. **Example:** `document_extract_tool_ahmed`
+
+Click **start building**. This opens the workflow canvas.
+
+> **How to add nodes:**
+> Hover over the arrow between two nodes → click the **+** button that appears → select the node type from the menu.
+
+---
+
+### 2.6 Build the Workflow
+
+#### Node 1 & 2 — Collect from User (File Upload)
+
+Click **"Add your first step +"** → select **Collect from user → Upload file**
+
+<img width="1317" height="713" alt="image" src="https://github.com/user-attachments/assets/5369bbce-0902-4928-844e-d4a3a05a8b04" />
+
+Click on the **File Upload** component to open it.
+
+> **Rename:** Click the **pencil icon** (top-left of node) → type `Emirates ID`
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/2ebabfe8-a5f4-4c81-ae90-9f6dea867921" />
+
+To add the Payslip node, hover over the arrow connecting the **Emirates ID** component and the **"end"** word — click the **+** icon that appears in the middle of the arrow → select **Collect from user → Upload file** → label it `Payslip`
+<!-- TODO: screenshot -->
+
+It should now look like this with two upload nodes:
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/a80414d0-52e0-46fc-9908-2682d8e5fdef" />
+
+
+| Label |
+|---|
+| `Emirates ID` |
+| `Payslip` |
+
+> There are no variable names here — just the label. The workflow waits until both files are uploaded before continuing.
+
+---
+
+#### Node 3 — Document Extractor (Emirates ID)
+
+Click **+** between **Node 1/2 (User activity 1, outside the big green box)** and the **output component (grey square)** → select **Add a flow activity → Document extractor**
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/9d1b65a2-f901-4a38-8237-7d85b498fcf0" />
+
+Click on the node to open its configuration panel.
+
+When prompted, select document type: `Unstructured`
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/0da8020e-9f02-4e87-8f4e-4d55a770db59" />
+
+> **Rename:** Click the **pencil icon** (top-left of node) → type `Extract emirates ID fields`
+>
+> **Change model:** Click the model selector (top-right of node) → click **"View All foundation models"** → select `gpt-oss-120b` → click **Save**
+
+Drag and drop the training Emirates ID file `EID_Train.png` into the document upload area of the node. Or click on the blue text and select the file.
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/fdd034e8-2002-4160-a3d2-d425dcdc272c" />
+
+> This is the training document.
+
+Click **Add field** and add the fields in the table below.
+For each field, click the **⋮ three-dot menu** → **Edit** to set its type and description.
+<img width="1293" height="764" alt="image" src="https://github.com/user-attachments/assets/ba77d92b-a06c-40e1-ab9b-192d965206ae" />
+<img width="1324" height="780" alt="image" src="https://github.com/user-attachments/assets/fbca5b57-0558-4a80-afe4-b1d2d31119ea" />
+
+| Field name | Type | Description |
+|---|---|---|
+| `ID Number` | string | Extract the Emirates ID number exactly as shown on the card, usually in the format 784-XXXX-XXXXXXX-X. |
+| `Full Name` | string | Extract the card holder's full name exactly as written in English on the Emirates ID. |
+| `Date of Birth` | date | Extract the card holder's date of birth exactly as shown on the Emirates ID. Return in YYYY-MM-DD format if possible. |
+| `Nationality` | string | Extract the card holder's nationality from the Emirates ID. Look for the label "Nationality" or "الجنسية". Return only the nationality value, not the label. The value may be a country name such as United Arab Emirates, Saudi Arabia, India, Pakistan, Egypt, Philippines, Jordan, Syria, or another nationality. If both English and Arabic are shown, return the English nationality. |
+| `Expiry Date` | date | Extract the expiry date of the Emirates ID exactly as shown on the card. This field will be used later for eligibility validation. |
+| `Date of Issue` | date | Extract the issue date of the Emirates ID exactly as shown on the card. |
+
+Click **"Verify document"** then click **X** on the top right corner to close the panel.
+
+<details>
+<summary> <strong>💡 Optional — Map the document Source (click to expand) </strong> </summary>
+
+1. Click **X** (top-right of the panel) to close it
+2. Click the `Extract emirates ID fields` node again to reopen it
+3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
+4. Click **`{x}`** on the `document_ref` field
+5. Under **User activity 1**, select `Emirates ID`
+6. On the right side, select `value`
+
+</details>
+
+---
+
+#### Node 4 — Document Extractor (Payslip)
+
+Click **+** between **Node 3 (Extract emirates ID fields component)** and the **output component (grey square)** → select **Add a flow activity → Document extractor**
+
+Click on the node to open its configuration panel.
+
+Select document type: `Unstructured`
+
+> **Rename:** `Extract payslip fields`
+>
+> **Change model:** Click the model selector (top-right of node) → click **"View All foundation models"** → select `gpt-oss-120b` → click **Save**
+
+Drag and drop the training payslip file `Payslip_Train.png` into the document upload area of the node. Or click on the blue text and select the file.
+
+> This is the training document. You will swap it during test scenarios.
+
+Click **Add field** and add the fields in the table below.
+For each field, click the **⋮ three-dot menu** → **Edit** to set its type and description.
+
+| Field name | Type | Description |
+|---|---|---|
+| `Employee Name` | string | Extract the employee's full name exactly as written in the payslip, usually found next to the label "Employee Name" or "Name" |
+| `gross salary` | string | Extract the gross salary amount from the payslip exactly as shown next to "Gross Salary". Return only the numeric value without currency symbols or commas. specifically look at the gross salary section|
+
+Click **"Verify document"** then click **X** on the top right corner to close the panel.
+
+<details>
+<summary> <strong>💡 Optional — Map the document Source (click to expand) </strong> </summary>
+
+1. Click **X** (top-right of the panel) to close it
+2. Click the `Extract payslip fields` node again to reopen it
+3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
+4. Click **`{x}`** on the `document_ref` field
+5. Under **User activity 1**, select `Payslip`
+6. On the right side, select `value`
+
+</details>
+
+---
+
+#### Node 5 — Logic Block (Eligibility Check)
+
+Click **+** between **Node 4 (Extract payslip fields component)** and the **output component (grey square)** → select **Add a flow activity → Logic block**
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/1b288b54-ba99-4f07-aded-b18dc4f78677" />
+
+Click on the node to open its configuration panel.
+
+> **Rename:** `Eligibility Check`
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/d9eb3f04-36c2-4eb6-b923-813d2f039c1b" />
+
+**Logic block code** — click the **open code editor** button, delete the existing code, then paste the following Python code:
+
+<img width="808" alt="image" src="https://github.com/user-attachments/assets/9ee3b9f8-15f6-4b49-92eb-cb858fd5fe61" />
+
+```python
+# ---- Pull extracted fields from the two upstream document extractor nodes ----
+id_fields = parent["Extract emirates ID fields"].output
+payslip_fields = parent["Extract payslip fields"].output
+
+id_name_raw = id_fields.get("full_name", "")
+payslip_name_raw = payslip_fields.get("employee_name", "")
+expiry_str = id_fields.get("expiry_date", "")
+gross_salary = float(payslip_fields.get("gross_salary", 0))
+
+# ---- Check 1: Cross-name validation ----
+def normalize_name(name):
+    name = name.lower().strip()
+    name = re.sub(r"[^a-z\s]", "", name)
+    name = re.sub(r"\s+", " ", name)
+    return name
+
+id_name_norm = normalize_name(id_name_raw)
+payslip_name_norm = normalize_name(payslip_name_raw)
+
+id_tokens = set(id_name_norm.split())
+payslip_tokens = set(payslip_name_norm.split())
+
+if len(id_tokens) == 0 or len(payslip_tokens) == 0:
+    name_match = False
+elif id_tokens.issubset(payslip_tokens) or payslip_tokens.issubset(id_tokens):
+    name_match = True
+else:
+    common = id_tokens.intersection(payslip_tokens)
+    name_match = len(common) >= 2
+
+# ---- Check 2: Expiry date (fail if missing, expired, or expiring within 3 months) ----
+today = datetime.date.today()
+three_months_out = today + datetime.timedelta(days=90)
+
+expiry_str_clean = expiry_str.strip() if expiry_str else ""
+expiry_date = None
+
+if expiry_str_clean != "":
+    # ISO 8601 is the platform's native date format; others are fallbacks
+    # in case the extractor returns a differently formatted string.
+    date_formats = [
+        "%Y-%m-%d",    # ISO 8601 - native flow date format
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+        "%m/%d/%Y",
+        "%d %B %Y",
+        "%d %b %Y",
+    ]
+    for fmt in date_formats:
+        try:
+            expiry_date = datetime.datetime.strptime(expiry_str_clean, fmt).date()
+            break
+        except ValueError:
+            continue
+
+if expiry_date is None:
+    id_valid = False
+elif expiry_date < today:
+    id_valid = False
+elif expiry_date <= three_months_out:
+    id_valid = False
+else:
+    id_valid = True
+
+# ---- Check 3: Salary threshold ----
+if gross_salary >= 4000:
+    salary_pass = True
+else:
+    salary_pass = False
+
+# ---- Overall result: ALL checks must pass ----
+if name_match and id_valid and salary_pass:
+    status = "PASS"
+    reason = "All checks passed"
+else:
+    if not name_match:
+        reason = "Name on Emirates ID does not match payslip"
+    elif not id_valid:
+        if expiry_str_clean == "":
+            reason = "Emirates ID expiry date missing or unreadable"
+        else:
+            reason = "Emirates ID expired or expiring within 3 months"
+    else:
+        reason = "Salary below 4000"
+    status = "FAIL"
+
+# ---- Outputs for downstream nodes ----
+self.output.status = status
+self.output.reason = reason
+```
+
+**Output schema** — open the output menu above the black code editor (beside the code editor menu), click **"Add Output +"** then choose the variable type. Refer to the table below and add all variables. Once done, close the component.
+
+<img width="880" alt="image" src="https://github.com/user-attachments/assets/9fb2ebe8-0c42-4e50-81c3-d1bf34eccf55" />
+
+<img width="880" alt="image" src="https://github.com/user-attachments/assets/c6a217f9-0090-4d69-92f9-9369c058f138" />
+
+| Variable name | Type | Description |
+|---|---|---|
+| `status` | string | Final eligibility status (PASS or FAIL) |
+| `reason` | string | Reason for approval or rejection |
+
+
+
+---
+
+#### Node 6 — Generative Prompt (Package Output)
+
+Click **+** between **Node 5 (Eligibility Check component)** and the **output component (grey square)** → select **Add a flow activity → Generative prompt**
+
+Click on the node to open its configuration panel, then click the **pencil icon** beside the prompt settings.
+<!-- TODO: screenshot -->
+
+<img width="880" alt="image" src="https://github.com/user-attachments/assets/636afa32-e1e6-4b40-a1b3-02dc64455451" />
+
+**Input variables** — click the **Add +** blue box in the input menu on the left side:
+
+<img width="1299" height="757" alt="image" src="https://github.com/user-attachments/assets/0d307030-ef2b-4798-8a4a-099017c13810" />
+
+| Variable name | Type |
+|---|---|
+| `full_name` | string |
+| `id_number` | string |
+| `expiry_date` | date |
+| `nationality` | string |
+| `gross_salary` | string |
+| `date_of_birth` | date |
+| `employee_name` | string |
+| `status` | string |
+| `reason` | string |
+
+**System Prompt:**
+
+```
+You are a data packaging assistant for telecom eligibility processing.
+Your only job is to combine extracted document data into a clean JSON object.
+You must return only valid JSON. No explanation, no commentary, no extra text.
+Never modify, correct, or interpret any field values.
+Always preserve the exact values as given to you.
+```
+
+**User Prompt:**
+
+```
+Combine the two documents into a single JSON object that has exactly three top‑level keys: **emirates_id**, **payslip**, and **eligibility**.
+
+**Emirates ID data** (replace the placeholders with the actual values):
+- ID Number: {self.input.id_number}
+- Full Name: {self.input.full_name}
+- Date of Birth: {self.input.date_of_birth}
+- Nationality: {self.input.nationality}
+- Expiry Date: {self.input.expiry_date}
+
+**Payslip data** (replace the placeholders with the actual values):
+- Employee Name: {self.input.employee_name}
+- Gross Salary: {self.input.gross_salary}
+
+**Eligibility data** (replace the placeholders with the actual values; if a value is not available, use an empty string `""`):
+- Status: {self.input.status}
+- Reason: {self.input.reason}
+
+**Return only** the following JSON structure—no extra text, no formatting, and no additional keys:
+
+{
+  "emirates_id": {self.input.
+    "id_number": "{self.input.id_number}",
+    "full_name": "{self.input.full_name}",
+    "date_of_birth": "{self.input.date_of_birth}",
+    "nationality": "{self.input.nationality}",
+    "expiry_date": "{self.input.expiry_date}"
+  },
+  "payslip": {self.input.
+    "employee_name": "{self.input.employee_name}",
+    "gross_salary": "{self.input.gross_salary}"
+  },
+  "eligibility": {self.input.
+    "status": "{self.input.status}",
+    "reason": "{self.input.reason}"
+  }
+}
+
+**RULE:**
+- **Always** output every field shown above (`id_number`, `full_name`, `date_of_birth`, `nationality`, `expiry_date`, `employee_name`, `gross_salary`, `status`, `reason`).
+- If a particular value is unknown or not provided, insert an empty string (`""`) for that field.
+- Do **not** omit any keys, do **not** add extra keys, and do **not** include any explanatory text or markdown formatting. The response must be a plain JSON object exactly as shown.
+```
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/e144b6a6-85a0-4008-9c25-ebde9b77c169" />
+
+**Data Mapping:**
+
+1. Click **X** (top-right of the panel) to close it
+2. Click the `Generative prompt` node again to reopen it
+3. At the bottom of the panel, click the **settings icon** (⚙) next to **Edit data mapping**
+
+For each input variable, click **`{x}`** and use the variable picker:
+
+| Input variable | Source component | Variable to select |
+|---|---|---|
+| `full_name` | Extract emirates ID fields | `full_name` |
+| `id_number` | Extract emirates ID fields | `id_number` |
+| `expiry_date` | Extract emirates ID fields | `expiry_date` |
+| `nationality` | Extract emirates ID fields | `nationality` |
+| `date_of_birth` | Extract emirates ID fields | `date_of_birth` |
+| `employee_name` | Extract payslip fields | `employee_name` |
+| `gross_salary` | Extract payslip fields | `gross_salary` |
+| `status` | Eligibility Check | `status` |
+| `reason` | Eligibility Check | `reason` |
+
+---
+
+#### Final Canvas
+
+```
+START
+  │
+  ▼
+User activity 1  (Collect from user → Upload files: Emirates ID, Payslip)
+  │
+  ▼
+Extract emirates ID fields  (Document Extractor)
+  │
+  ▼
+Extract payslip fields  (Document Extractor)
+  │
+  ▼
+Eligibility Check  (Logic block)
+  │
+  ▼
+Generative prompt  (Package Output)
+  │
+  ▼
+END
+```
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/814df0b2-d282-419c-ace1-c80288818d4c" />
+
+#### Configure the Output Node
+
+After the workflow is created, configure the output node to expose the workflow output:
+
+1. Click the **output node (grey square)**
+2. Select type **String**
+3. In the name field, type `value` and click **Add**
+4. Close the panel, then click the **output node (grey square)** again to reopen it
+5. At the bottom-right of the panel, click the **settings icon** (⚙)
+5. Click **`{x}`** next to `value`
+6. Under **Generative prompt**, select `value` (the blue text on the right side)
+
+<img width="1153" height="594" alt="image" src="https://github.com/user-attachments/assets/a401d60a-06e5-4311-b3d3-a76932e6bd5d" />
+<img width="1357" height="698" alt="image" src="https://github.com/user-attachments/assets/90eb6354-58f3-442a-912b-0170faa330ae" />
+
+
+#### Enable Agent Summarisation
+
+1. Click the **settings icon** (⚙) at the top of the canvas, next to the workflow name
+2. A panel opens on the right side — toggle **Agent summarisation** on
+
+<img width="1301" height="606" alt="image" src="https://github.com/user-attachments/assets/e3e4efe0-522d-4fb5-a7b8-916df89aa2cf" />
+
+---
+
+### 2.7 Save and Exit
+
+Click **Done** (top-right) to return to the agent page.
+
+---
 
 ## Part 3 — Build the Master Agent
 
