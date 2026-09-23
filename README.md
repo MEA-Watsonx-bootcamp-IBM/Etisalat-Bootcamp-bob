@@ -267,9 +267,11 @@ Import both, then prove it: create a link for "Smart 150" at 150 AED and confirm
 After sending the prompt, Bob will guide you through a series of approval steps:
 
 9. For the purpose of this demo, approve any request Bob presents
-   <img width="702" height="154" alt="Screenshot 2026-09-23 093950" src="https://github.com/user-attachments/assets/53dd236a-a56a-490c-bc46-f960054dda90" />
+   <img width="1096" height="221" alt="image" src="https://github.com/user-attachments/assets/b30b108a-5d92-4125-960b-2074e2105375" />
+
 10. When prompted to approve command execution — scroll down, select **"I understand the risk"** at the bottom right, then click **Approve**
-   <img width="756" height="583" alt="Screenshot 2026-09-23 094620" src="https://github.com/user-attachments/assets/7d219b43-202c-4738-afea-f6f49e33f292" />
+   <img width="745" height="579" alt="image" src="https://github.com/user-attachments/assets/f27d93c8-e26a-4181-904d-3a835bd2c1cf" />
+
 
 
 > ⚠️ **Demo environment only.** Selecting "I understand the risk" grants Bob permission to execute terminal commands. This is safe in this controlled lab environment — you are explicitly approving this action as part of the demo setup.
