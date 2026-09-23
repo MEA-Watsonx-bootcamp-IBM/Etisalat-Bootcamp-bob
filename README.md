@@ -189,7 +189,7 @@ Once you are logged in to IBM Cloud:
 
 
 This opens your watsonx Orchestrate environment — this is where you will build everything in this lab.
-<img width="3398" height="1832" alt="image" src="https://github.com/user-attachments/assets/b5e089e5-d53d-4d91-83f2-91e106833eaa" />
+<img width="3398" height="1832" alt="image" src="https://github.com/user-attachments/assets/72d52a6b-e50d-4e17-924a-956a3e4691cf" />
 
 ---
 
