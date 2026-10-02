@@ -1125,7 +1125,7 @@ Check my postpaid plan eligibility
 
 ### 3.5 Add Sub-Agents
 
-Go to the **Agent** tab on the top menu → Click **Add agents** → **Local instance** → select:
+Click the **Build** menu at the top → go to the **Agent** tab → Click **Add agents** → **Local instance** → select:
 
 - `document_agent_<your_last_name>`
 - `payment_agent_<your_last_name>`
