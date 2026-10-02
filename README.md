@@ -249,6 +249,10 @@ In the watsonx Orchestrate UI:
    <img width="1292" height="350" alt="image" src="https://github.com/user-attachments/assets/6ff599b6-44b3-44c2-bdec-dc59fb794365" />
 7. Once the environment is connected, you should be able to see the workspace in Bob IDE
    <img width="3338" height="1864" alt="image" src="https://github.com/user-attachments/assets/665a537e-7f68-419f-bc3e-e59b37b53465" />
+
+> 💡 **If a "Workspace Trust" prompt appears** — click **"You trust the authors of the files in the current folder"** (left option) to enable all features in Bob IDE.
+> <!-- TODO: screenshot -->
+
 8. A new task opens in Bob IDE — paste the following prompt:
    <img width="652" height="884" alt="image" src="https://github.com/user-attachments/assets/eb2ae48b-927b-49e2-a4ed-a47ee57c7c5c" />
 
