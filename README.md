@@ -973,7 +973,7 @@ After the workflow is created, configure the output node to expose the workflow 
 #### Enable Agent Summarisation
 
 1. Click the **settings icon** (⚙) at the top of the canvas, next to the workflow name
-2. A panel opens on the right side — toggle **Agent summarisation** on
+2. A panel opens on the right side — under **General settings**, toggle **Agent summarisation** on
 
 <img width="1301" height="606" alt="image" src="https://github.com/user-attachments/assets/e3e4efe0-522d-4fb5-a7b8-916df89aa2cf" />
 
