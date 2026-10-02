@@ -586,11 +586,11 @@ Click **"Add your first step +"** → select **Collect from user → Upload file
 
 Click on the **File Upload** component to open it.
 
-> **Rename:** Click the **pencil icon** (top-left of node) → type `Emirates ID`
+> **Rename:** Click the **pencil icon** (top-right of node) → under the **Label** section, type `Emirates ID`
 
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/2ebabfe8-a5f4-4c81-ae90-9f6dea867921" />
 
-To add the Payslip node, hover over the arrow connecting the **Emirates ID** component and the **"end"** word — click the **+** icon that appears in the middle of the arrow → select **Collect from user → Upload file** → label it `Payslip`
+To add the Payslip node, hover over the arrow connecting the **Emirates ID** component and the **"end"** word — click the **+** icon that appears in the middle of the arrow → select **Collect from user → Upload file** → click the **pencil icon** (top-right of node) → under the **Label** section, type `Payslip`
 <img width="533" height="541" alt="Screenshot 2026-09-23 100009" src="https://github.com/user-attachments/assets/b328cfcb-6d00-431c-9ae4-8a85613e1aa9" />
 
 
