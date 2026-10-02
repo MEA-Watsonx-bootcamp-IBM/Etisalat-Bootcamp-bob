@@ -251,7 +251,8 @@ In the watsonx Orchestrate UI:
    <img width="3338" height="1864" alt="image" src="https://github.com/user-attachments/assets/665a537e-7f68-419f-bc3e-e59b37b53465" />
 
 > 💡 **If a "Workspace Trust" prompt appears** — click **"You trust the authors of the files in the current folder"** (left option) to enable all features in Bob IDE.
-> <!-- TODO: screenshot -->
+<img width="1410" height="737" alt="Screenshot 2026-10-02 141028" src="https://github.com/user-attachments/assets/6f9c979b-972f-4e2a-9d90-60c357774823" />
+
 
 8. A new task opens in Bob IDE — paste the following prompt:
    <img width="652" height="884" alt="image" src="https://github.com/user-attachments/assets/eb2ae48b-927b-49e2-a4ed-a47ee57c7c5c" />
@@ -586,9 +587,9 @@ Click **"Add your first step +"** → select **Collect from user → Upload file
 
 Click on the **File Upload** component to open it.
 
-> **Rename:** Click the **pencil icon** (top-right of node) → under the **Label** section, type `Emirates ID`
+> **Rename:** Click the **pencil icon** (top-right of node) → under the **Label** and **Node Name** section, type `Emirates ID`
 
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/2ebabfe8-a5f4-4c81-ae90-9f6dea867921" />
+<img width="790" height="682" alt="Screenshot 2026-10-02 144330" src="https://github.com/user-attachments/assets/7ba6bb00-2bd2-4e4a-892e-e60d54b907c4" />
 
 To add the Payslip node, hover over the arrow connecting the **Emirates ID** component and the **"end"** word — click the **+** icon that appears in the middle of the arrow → select **Collect from user → Upload file** → click the **pencil icon** (top-right of node) → under the **Label** section, type `Payslip`
 <img width="533" height="541" alt="Screenshot 2026-09-23 100009" src="https://github.com/user-attachments/assets/b328cfcb-6d00-431c-9ae4-8a85613e1aa9" />
@@ -975,7 +976,7 @@ After the workflow is created, configure the output node to expose the workflow 
 1. Click the **settings icon** (⚙) at the top of the canvas, next to the workflow name
 2. A panel opens on the right side — under **General settings**, toggle **Agent summarisation** on
 
-<img width="1301" height="606" alt="image" src="https://github.com/user-attachments/assets/e3e4efe0-522d-4fb5-a7b8-916df89aa2cf" />
+<img width="1409" height="705" alt="Screenshot 2026-10-02 144600" src="https://github.com/user-attachments/assets/8ce79739-0ab6-4622-9ae7-9389dd510e58" />
 
 ---
 
